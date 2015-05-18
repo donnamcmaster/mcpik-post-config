@@ -26,7 +26,7 @@ define( 'MCW_CPF_CONFIG_FILE', '/config.php' );
 /**
  *	Dummy error log function for sites without mcw-debug-log plugin
  */
-if ( !function_exists( 'mcw_log' ) {
+if ( !function_exists( 'mcw_log' ) ) {
 	function mcw_log ( $s, $level='info' ) {
 	}
 }
