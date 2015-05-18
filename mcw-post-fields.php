@@ -3,7 +3,7 @@
 Plugin Name: McWebby Custom Post Fields
 Plugin URI: http://www.donnamcmaster.com/
 Description: Object-oriented post types configuration and admin; supplements Piklist
-Version: 00.02.00
+Version: 00.02.01
 Author: Donna McMaster
 Author URI: http://www.donnamcmaster.com/
 License: GPL2 (see _LICENSE.TXT)
@@ -21,6 +21,15 @@ define( 'MCW_CPF_FOLDER', '/mcw-post-fields' );
 
 define( 'MCW_CPF_CLASS_PATH', MCW_CPF_PLUGIN_PATH . 'class' );
 define( 'MCW_CPF_CONFIG_FILE', '/config.php' );
+
+
+/**
+ *	Dummy error log function for sites without mcw-debug-log plugin
+ */
+if ( !function_exists( 'mcw_log' ) {
+	function mcw_log ( $s, $level='info' ) {
+	}
+}
 
 
 /**
