@@ -1,0 +1,126 @@
+/**
+ *	McWebby Post Types plugin
+ *	Admin CSS for Post Editing
+ */
+
+/* admin notices */
+div.error.caution {
+	background-color: #EBF8A4;
+	border-color: #A2D246;
+}
+
+/*	Post Edit - Column View
+--------------------*/
+/* fix crazy default post column sizes */
+.fixed .column-title {
+	min-width: 15% !important;
+}
+.fixed .column-response, 
+.fixed .column-author, 
+.fixed .column-comments,
+.fixed .column-tags, 
+.fixed .column-rel, 
+.fixed .column-role,
+.fixed .column-post_thumb {
+	width: 10% !important;
+}
+.fixed .column-categories, 
+.fixed .column-slug,
+.fixed .column-project_cat {
+	width: 12% !important;
+}
+
+/*	Post Edit - Single View
+--------------------*/
+
+/* increase size of excerpt edit box */
+textarea#excerpt {
+	height: 200px !important;
+}
+
+/* edit button vertical offsets (horz always 0): 
+blue 0, red -18, ylo -36, purple -54, pink -72, orange -90, green -108, cyan -126, plain -144 */
+a.post-edit-link {
+	font-size: 0;
+	color: transparent;
+	padding: 12px 8px 4px 8px;
+	background: transparent url(../img/edit-buttons.png) 0 -36px no-repeat;
+}
+a.post-edit-link:hover {
+	background-position: 0 -18px;
+}
+
+/*	Metaboxes
+--------------------*/
+div.mcw_metabox label {
+	display: block;
+	margin: 8px 0 2px 0;
+}
+div.mcw_metabox p.help_text {
+	margin: 0 0 0 12px;
+	font-size: 90%;
+	font-style: italic;
+}
+div.mcw_metabox input,
+div.mcw_metabox textarea {
+	display: block;
+	width: 90%;
+	margin: 0 0 2px 12px;
+}
+div.mcw_metabox input.ed_button {
+	display: inline;
+	width: auto;
+	margin: 0;
+}
+
+div.mcw_metabox input[type="checkbox"] {
+	display: inline;
+	width: auto;
+	margin: 0;
+}
+#poststuff .inside .mcw_metabox p {
+	margin: 0px 0 2px 12px;
+}
+.mcw_scroll_checkboxes {
+	margin-top: 8px;
+    padding: 5px;
+    overflow: auto;
+    border: 1px solid #ccc;
+}
+
+/*	Multi-Edit
+--------------------*/
+table.multi_edit {
+	width: 100%;
+}
+table.multi_edit th,
+table.multi_edit td {
+	border-bottom: 1px dotted #ddd;
+	padding: 6px 4px 6px 4px;
+}
+table.multi_edit th.tiny {
+	width: 3% !important;
+}
+table.multi_edit th.narrow {
+	width: 6% !important;
+}
+table.multi-edit th.medium {
+	width: 20% !important;
+}
+table.multi_edit th.wide {
+	width: 30% !important;
+}
+table.multi-edit th.jumbo {
+	min-width: 35% !important;
+}
+table.multi_edit td input,
+table.multi_edit td textarea {
+	width: 95%;
+}
+ul#mcw_user_edit_buttons {
+	list-style-type: none;
+}
+#mcw_user_edit_buttons li {
+	float: left;
+	margin: 0 10px 0 0;
+}
