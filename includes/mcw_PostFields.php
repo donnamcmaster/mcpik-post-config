@@ -330,7 +330,7 @@ public function custom_column ( $column_name, $id ) {
 			}
    		case 'meta':
    			$meta = get_post_meta( $id, $column_name, true);
-   			if ( $input_type == 'image' ) {
+   			if ( isset( $input_type ) && ( $input_type == 'image' ) ) {
 				// here $meta represents the attachment ID
 				if ( $meta ) {
 					$img_src = wp_get_attachment_image_src( $meta, $img_size, false );
