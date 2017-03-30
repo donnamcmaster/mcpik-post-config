@@ -1,6 +1,6 @@
 <?php
 /**
- *	Class mcw_PostFields
+ *	Class McPik_Post_Type
  *
  *	General configuration and display routines for post types (custom and built-in).
  *
@@ -9,34 +9,35 @@
  *	@since McWebby Base 2.0
  */
 
-Class mcw_PostFields {
+Class McPik_Post_Type {
 
 public $post_type = null;
 
 /**
 	$this->post_fields defines all custom fields, plus all built-in fields and 
 	pseudo-fields such as "attached docs" used in column displays and multi-edit.
-	Class mcw_PostFields defines built-in fields; each subclass defines its custom fields.
+	Class McPik_Post_Type defines built-in fields; each subclass defines its custom fields.
 
 	Supported Values 
-	storage: meta, taxonomy, post_db, 
+	scope: post_meta, taxonomy, post (posts table), 
 		(display only): calculate, thumbnail, attachments, children, ignore, 
-	input_type: text, textarea, wysiwyg, integer, url, email, select, checkboxes, 
+	type: text, textarea, editor (wysiwyg), integer, url, email, select, checkboxes, 
 		post_list, single_post, single_author, single_term, special, 
 		(display only): display_only, 
 */
 protected
 	$default_field = array (
-		'storage' => 'meta',
-		'input_type' => 'text',
+		'scope' => 'post_meta',
+		'type' => 'text',
 		'col_title' => 'Item',	// for columns or multi-edit display
 		'col_align' => '',
 		'col_width' => null,
-		'prompt' => 'Enter value: ',
-		'help_text' => '',		// optional sub-text for prompt
+		'col_display' => null,
+		'label' => 'Enter value: ',
+		'help' => '',		// optional sub-text for label
 		'null_ok' => true,
 		'default' => '',
-		'editor_id' => 'mcwebby',	// for wysiwyg
+		'img_size' => 'thumbnail',
 
 		// these fields are used only occasionally and must be null-checked
 		'max_length' => null,
@@ -49,183 +50,170 @@ protected
 
 protected
 	$post_fields = array(
+		'ID' => array(
+			'scope' => 'post',
+			'db_field' => 'ID',
+			'col_title' => 'ID',
+			'col_width' => 'small',
+			'input_type' => 'text',
+		),
 		'post_title' => array(
-			'storage' => 'post_db',
+			'scope' => 'post',
 			'db_field' => 'post_title',
 			'col_title' => 'Title',
 			'col_width' => 'medium',
-			'input_type' => 'text',
+			'type' => 'text',
 		),
 		'post_status' => array(
-			'storage' => 'post_db',
+			'scope' => 'post',
 			'db_field' => 'post_status',
 			'col_title' => 'Status',
 			'col_width' => 'medium',
-			'input_type' => 'text',
+			'type' => 'text',
 		),
 		'post_content' => array(
-			'storage' => 'post_db',
+			'scope' => 'post',
 			'db_field' => 'post_content',
 			'col_title' => 'Content',
 			'col_width' => 'wide',
-			'input_type' => 'textarea',
+			'type' => 'textarea',
 		),
 		'post_excerpt' => array(
-			'storage' => 'post_db',
+			'scope' => 'post',
 			'db_field' => 'post_excerpt',
 			'col_title' => 'Excerpt',
 			'col_width' => 'wide',
-			'input_type' => 'textarea',
+			'type' => 'textarea',
 		),
 		'post_date' => array(
-			'storage' => 'post_db',
+			'scope' => 'post',
 			'db_field' => 'post_date',
 			'col_title' => 'Post Date',
 			'col_width' => 'medium',
-			'input_type' => 'text',
+			'type' => 'text',
 		),
 		'slug' => array(
-			'storage' => 'post_db',
+			'scope' => 'post',
 			'db_field' => 'post_name',
 			'col_title' => 'Slug',
 			'col_width' => 'medium',
-			'input_type' => 'text',
+			'type' => 'text',
 		),
 		'post_parent' => array(
-			'storage' => 'post_db',
+			'scope' => 'post',
 			'db_field' => 'post_parent',
 			'col_title' => 'Parent',
 			'col_width' => 'medium',
-			'input_type' => 'single_post',
+			'type' => 'single_post',
 			'post_type' => null,	// init when handler created
 		),
 		// same as post_parent but display only
 		'display_parent' => array(
-			'storage' => 'post_db',
+			'scope' => 'post',
 			'db_field' => 'post_parent',
 			'col_title' => 'Parent',
 			'col_width' => 'medium',
-			'input_type' => 'display_only',
+			'type' => 'display_only',
 			'post_type' => null,	// init when handler created
 		),
 		'menu_order' => array(
-			'storage' => 'post_db',
+			'scope' => 'post',
 			'db_field' => 'menu_order',
 			'col_title' => 'Menu Order',
 			'col_width' => 'tiny',
-			'input_type' => 'text',
+			'type' => 'text',
 		),
 		'post_author' => array(
-			'storage' => 'post_db',
+			'scope' => 'post',
 			'db_field' => 'post_author',
 			'col_title' => 'Author',
 			'col_width' => 'small',
-			'prompt' => 'Select a new author:',
-//			'help_text' => '(WordPress only allows selecting from editors; use this selection box to override and assign a new author.)',
-			'input_type' => 'single_author',
+			'label' => 'Select a new author:',
+//			'help' => '(WordPress only allows selecting from editors; use this selection box to override and assign a new author.)',
+			'type' => 'single_author',
 			'null_ok' => false,
 		),
 		'_wp_page_template' => array(
-			'storage' => 'meta',
+			'scope' => 'post_meta',
 			'col_title' => 'Template',
 			'col_width' => 'small',
-			'input_type' => 'text',
+			'type' => 'text',
 		),
 		'thumb' => array(	// for featured image ("post thumbnail")
-			'storage' => 'thumbnail',
+			'scope' => 'thumbnail',
 			'img_size' => 'thumbnail',	// override for different size in col display
 			'col_title' => 'Image',
 			'col_width' => 'narrow',
+			'col_display' => 'image',
 		),
 		'attached_docs' => array(
-			'storage' => 'attachments',
-			'prompt' => 'Attached Document Files:',
+			'scope' => 'attachments',
+			'label' => 'Attached Document Files:',
 			'col_title' => 'Files',
 			'col_width' => 'narrow',
 			'post_mime_type' => 'application',
 		),
 		'image_count' => array(
-			'storage' => 'calculate',
-			'prompt' => 'Image Count:',
+			'scope' => 'calculate',
+			'label' => 'Image Count:',
 			'col_title' => 'Image Count',
 			'col_width' => 'narrow',
 			'post_mime_type' => 'image',
 		),
 		'img_size' => array(
-			'storage' => 'calculate',
+			'scope' => 'calculate',
 			'col_title' => 'Size',
 		),
 		'attachment_count' => array(
-			'storage' => 'calculate',
-			'prompt' => 'Attachment Count:',
+			'scope' => 'calculate',
+			'label' => 'Attachment Count:',
 			'col_title' => 'Attachment Count',
 			'col_width' => 'narrow',
 			'post_mime_type' => '',
 		),
 	);
 
-protected $multi_edit_fields = null;	// fields to include in multi-edit
-public $multi_edit_filters = null;		// filters for simplifying multi-edit
-
 protected $custom_columns = null;		// columns for group edit display
 protected $contextual_help = null;		// help text for post edit screen
+protected $meta_boxes = null;
+
+protected $default_sort_by = 'menu_order';
+protected $default_sort_order = 'ASC';
+protected $default_sort_meta_key = '';
+
+protected $url_field = null;			// opt field containing URL for this post type
+
+protected $registered = false;			// has this post type been registered?
 
 
 /**
  *
  *	Sub-Class Initialization and Registration
  *
- *	On the init hook, function mcw_init_post_types (in McWebby Base functions.php)
- *	calls mcw_PostFields::init_custom_post_type for each post_type defined by child theme. 
+ *	On the init hook, function 
+ *	calls McPik_Post_Type::init_post_type for each post_type defined by child theme. 
  */
 
 
 /**
- *	mcw_PostFields::create_handler
- *
- *	Called on the static mcw_PostFields superclass (not on a post_type object). 
- *	Creates a handler for the requested post type, which invokes the __construct 
- *	method for that class. 
- *	The new instance variable is stored in the global $mcw_cpf_handlers array. 
- */
-public static function create_handler ( $post_type, $menu_order=null ) {
-	global $mcw_cpf_handlers;
-
-	// may already have been created; if so, we're done
-	if ( array_key_exists( $post_type, $mcw_cpf_handlers ) ) {
-		return;
-	}
-
-	$class_name = MCW_CPF_PREFIX . $post_type;
-	$loaded_file = locate_post_type_file( $class_name, true );
-	
-	if ( !$loaded_file ) {
-		mcw_log( 'mcw_PostFields: class file not found for '.$class_name, 'error' );
-		return;
-	}
-	if ( !class_exists( $class_name ) ) {
-		mcw_log( 'mcw_PostFields class '.$class_name.' not found for '.$post_type, 'error' );
-		return;
-	}
-
-	$mcw_cpf_handlers[$post_type] = new $class_name();
-}
-
-
-/**
- *	init_post_fields
+ *	init_post_type
  *
  *	Called by each subclass object's __construct method 
  *	- basic instance init
  *	- sets action hooks and filters
  */
-protected function init_post_fields ( $post_type ) {
-
+protected function init_post_type ( $post_type, $type_name=null, $display_name=null ) {
 	$this->post_type = $post_type;
-	
+	$this->type_name = $type_name ? $type_name : $post_type;
+	$this->display_name = $display_name ? $display_name : ucwords( $this->type_name );
+
 	// override in post type handler init if post_parent is of a different type
 	$this->post_fields['post_parent']['post_type'] = $post_type;
 	$this->post_fields['display_parent']['post_type'] = $post_type;
+
+	if ( !$this->registered ) {
+		add_filter( 'piklist_post_types', array( $this, 'register' ) );
+	}
 
 	if ( is_admin() ) {
 		// initialize common admin filters
@@ -236,12 +224,9 @@ protected function init_post_fields ( $post_type ) {
 		}
 		add_filter( $filter, array( $this, 'manage_columns' ) );
 
-		if ( $this->multi_edit_fields ) {
-			add_action( 'admin_menu', array( $this, 'add_multi_edit_menu' ) );
+		if ( method_exists( $this, 'post_updated_messages' ) ) {
+			add_filter( 'post_updated_messages', array( $this, 'post_updated_messages' ) );
 		}
-
-//		add_filter( 'post_updated_messages', array( $this, 'post_updated_messages' ) );
-		
 		if ( $this->contextual_help ) {
 			add_action( 'contextual_help', array( $this, 'add_help_text' ), 10, 3 );
 		}
@@ -265,19 +250,118 @@ protected function init_post_fields ( $post_type ) {
 
 
 /**
+ *	get_handler
  *
- *	Methods to Return Class Variables
+ *	Returns the handler object for $post_type. 
+ */
+public static function get_handler ( $post_type ) {
+	global $mcpk_pt_handlers;
+	return $mcpk_pt_handlers[$post_type];
+}
+
+
+/**
+ *	register
+ *
+ *	Hooked to Piklist's 'piklist_post_types' filter. 
+ *	- registers the custom post type; sets registered=true
+ */
+public function register ( $post_types ) {
+	if ( !$this->registered ) {
+		$labels = piklist( 'post_type_labels', $this->display_name );
+		$this->register_args['labels'] = $labels;
+		$post_types[$this->post_type] = $this->register_args;
+		$this->registered = true;
+	}
+	return $post_types;
+}
+
+
+/**
+ *	Get Details
+ *	- returns a simple array with post meta and the essential post content
+ *		ID
+ *		post_title
+ *		post_status
+ *		post_date
+ *		post_excerpt
+ *		post_content
+ */
+protected static function get_details ( $post, $first_element_only=false ) { 
+	$details = array();
+	
+	// get post meta
+	$details = mcw_get_simple_post_custom( $post->ID, $first_element_only );
+
+	// add info from post record
+	$details['ID'] = $post->ID;
+	$details['post_title'] = $post->post_title;
+	$details['post_status'] = $post->post_status;
+	$details['post_date'] = $post->post_date;
+	$details['post_excerpt'] = $post->post_excerpt;
+	$details['post_content'] = $post->post_content;
+
+	return $details;
+}
+
+
+/**
+ *	Get Post Choices
+ *	- returns a selection array of post IDs & names
+ */
+static function get_post_choices ( $post_type, $null_ok=false, $null_label='-- none --', $limit=-1 ) { 
+	$choices = piklist(
+		get_posts( array(
+			'post_type' => $post_type,
+			'numberposts' => $limit,
+			'orderby' => 'title',
+			'order' => 'ASC'
+		)),
+		array( 'ID', 'post_title' )
+	);
+	if ( $null_ok ) {
+		$null_choice = array( 0 => $null_label );
+		$choices = $null_choice + $choices;
+	}
+	return $choices;
+}
+
+
+/**
+ *
+ *	Display Methods
  *
  */
 
-public function get_post_type () {
-	return $this->post_type;
+/**
+ *	get_linked_name
+ *	for post types with URLs associated (links to websites)
+ *	returns an anchor with the post title
+ *	pass the name if calling function already has it, to avoid add'l db lookup
+ */
+public function get_linked_name ( $id, $name='' ) {
+	$url = $this->url_field ? get_post_meta( $id, $this->url_field, true) : '';
+	$name = $name ? $name : get_the_title( $id );
+	return $url ? mcw_get_anchor( $url, $name ) : $name;
 }
-public function get_default_field () {
-	return $this->default_field;
-}
-public function get_field ( $field ) {
-	return $this->post_fields[$field];
+
+
+/**
+ *	piklist_meta_box_fields
+ *	Calls Piklist to create the fields for a meta box. 
+ *	No return value.
+ */
+public function piklist_meta_box_fields ( $meta_box ) {
+	if ( !is_array( $this->meta_boxes ) || !isset( $this->meta_boxes[$meta_box] ) ) {
+		mcw_log( "piklist_meta_box_fields: no meta_box $meta_box" );
+		return;
+	}
+	foreach ( $this->meta_boxes[$meta_box] as $field_name ) {
+		$field = $this->post_fields[$field_name];
+		$field['field'] = $field_name;
+//piklist::pre($field);
+		piklist( 'field', $field );
+	}
 }
 
 
@@ -297,13 +381,16 @@ public function custom_column ( $column_name, $id ) {
 		return;
 	}
 	$post = get_post( $id );
-	extract( $this->post_fields[$column_name] );
-	switch ( $storage ) {
-   		case 'post_db':
+
+	$column = wp_parse_args( $this->post_fields[$column_name], $this->default_field );
+	extract( $column );
+	switch ( $scope ) {
+   		case 'post':
 			echo $post->$db_field;
 			break;
+
    		case 'related':
-			switch ( $input_type ) {
+			switch ( $type ) {
 				case 'single_post':
 				case 'post_list':
 					$args = array(
@@ -328,35 +415,71 @@ public function custom_column ( $column_name, $id ) {
 					echo $s;
 					break;
 			}
-   		case 'meta':
-   			$meta = get_post_meta( $id, $column_name, true);
-   			if ( isset( $input_type ) && ( $input_type == 'image' ) ) {
-				// here $meta represents the attachment ID
-				if ( $meta ) {
-					$img_src = wp_get_attachment_image_src( $meta, $img_size, false );
-					echo '<img src="' . $img_src[0] .'" alt="feature image" />';
+
+		case 'post_meta':
+			// handle case that may have multiple results
+			if ( isset( $choices ) ) {
+				$meta = get_post_meta( $id, $column_name );
+				if ( !is_array( $meta ) ) {
+					echo $choices[$meta];
+
 				} else {
-					echo '-';
+					if ( is_array( $meta[0] ) ) {
+						$meta = $meta[0];
+					}
+					foreach ( $meta as $key ) {
+						if ( isset( $choices[$key] ) ) {
+							echo $choices[$key], ', ';
+						} else {
+							echo "unknown option $key, ";
+						}
+					}
 				}
-   			} else {
-   				echo $meta;
-   			}
+
+			} else {
+				$meta = get_post_meta( $id, $column_name, true );
+				if ( ( $type == 'file' ) && ( $col_display == 'image' ) ) {
+					// here $meta represents the attachment ID(s)
+					if ( is_array( $meta ) ) {
+						echo 'multiple';
+					} elseif ( $meta ) {
+						echo wp_get_attachment_image( $meta, $img_size );
+					} else {
+						echo '-';
+					}
+				} else {
+	   				echo $meta;
+				}
+			}
 			break;
+
    		case 'taxonomy':
 	    	$cats = wp_get_object_terms( $id, $column_name );
-	    	foreach ( $cats as $cat ) {
-				echo $cat->name,', ';
+	    	if ( $cats && is_array( $cats ) ) {
+				foreach ( $cats as $cat ) {
+					echo $cat->name,', ';
+				}	    	
 			}	    	
 			break;
+ 
    		case 'thumbnail':
+			$thumb_src = null;
+			// for images in media library
+			if ( $post->post_type == 'attachment' ) {
+				$thumb_src = wp_get_attachment_image_src( $id, $img_size, false );
+
    			// for "featured image" aka "post thumbnail"
-			if ( $thumb_id = get_post_meta( $id, '_thumbnail_id', true ) ) {
+			} elseif ( $thumb_id = get_post_meta( $id, '_thumbnail_id', true ) ) {
 				$thumb_src = wp_get_attachment_image_src( $thumb_id, $img_size, false );
+			}
+
+			if ( $thumb_src ) {
 				echo '<img src="' . $thumb_src[0] .'" alt="feature image" />';
 			} else {
 				echo '-';
 			}
 			break;
+ 
    		case 'calculate':
    			switch ( $column_name ) {
    				case 'attachment_count':
@@ -389,74 +512,5 @@ protected function special_custom_column ( $column_name, $id, $post ) {
 }
 
 
-/**
- *
- *	Admin: Notices
- *
- */
-
-public function admin_notices () {
-}
-
-
-/**
- *	Admin: Contextual Help
- */
-function add_help_text( $contextual_help, $screen_id, $screen ) { 
-	if ( $this->post_type == $screen->id ) {
-		$contextual_help = $this->contextual_help['edit_single'];
-	} elseif ( 'edit-'.$this->post_type == $screen->id ) {
-		$contextual_help = $this->contextual_help['all_posts'];
-	}
-	return $contextual_help;
-}
-
-
-/**
- *
- *	Admin: Multi-Edit (NOT CURRENTLY WORKING)
- *
- */
-public function add_multi_edit_menu () {
-	if ( $this->multi_edit_fields ) {
-		add_submenu_page( 'edit.php?post_type='.$this->post_type, 'Multi-Edit '.$this->display_title_plural, 'Multi Edit', 'edit_posts', 'multi-edit-'.$this->post_type, array( $this, 'multi_edit' ) );
-	}
-}
-
-public function multi_edit () {
-?>
-	<div class="wrap">
-	<div id="icon-tools" class="icon32"><br /></div>
-	<h2>Multi-Edit <?php echo $this->display_title_plural;?></h2>
-	
-	<p>Edit a group of <?php echo $this->display_plural;?>.</p>
-	<p>Please contact Donna McMaster at <a href="mailto:donna@mcdonnas.com">donna@mcdonnas.com</a> or (541) 738-2973 if you need assistance. </p>
-<?php
-
-	if ( array_key_exists( 'update', $_POST ) ) {
-		mcw_PostEdit::do_multi_update( $this->post_type, $this->multi_edit_fields, $this->post_fields, $this->multi_edit_filters, $this->display_title_plural );
-	} elseif ( !isset( $this->multi_edit_filters ) ) {
-		mcw_PostEdit::print_multi_edit_form( $this->post_type, $this->multi_edit_fields, $this->post_fields );
-	} else {
-		$filter_set = false;
-		foreach ( $this->multi_edit_filters as $name => $info ) {
-			$filter_index = 'mcw_filter_'.$this->post_type.'_'.$name;
-			if ( key_exists( $filter_index, $_POST ) ) {
-				$filter_set = $name;
-				break;
-			}
-		}
-		if ( $filter_set ) {
-			mcw_PostEdit::print_multi_edit_form( $this->post_type, $this->multi_edit_fields, $this->post_fields, $this->multi_edit_filters, $filter_set );
-		} else {
-			mcw_PostEdit::prompt_multi_edit_filter( $this->post_type, $this->multi_edit_filters );
-		}
-	}
-
-?>
-	</div><!-- .wrap -->
-<?php
-}
-
-} // Class mcw_PostFields
+} // Class McPik_Post_Type
 ?>
