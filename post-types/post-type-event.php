@@ -8,6 +8,8 @@
  *	@since McPik Post Types 1.0
  */
 
+use McPik\Basics\Utils;
+
 Class McPik_Post_Type_Event extends McPik_Post_Type {
 
 function __construct ( ) {
@@ -191,21 +193,21 @@ public function mcw_events ( $atts ) {
 		$custom_fields = get_post_custom( $event->ID );
 
 		if ( $display_date ) {
-			$date_string = ' &mdash; '.mcw_get_custom_value( 'event_date_string', $custom_fields );
+			$date_string = ' &mdash; '.Utils\get_custom_value( 'event_date_string', $custom_fields );
 		}
 
 		$anchor = '';
 		if ( $format == 'brief' ) {
 			$url = '/calendar/#event-' . $event->ID;
-			$anchor = mcw_get_anchor( $url, $event->post_title );
+			$anchor = Utils\get_anchor( $url, $event->post_title );
 			echo "<li>$anchor$date_string</li>", PHP_EOL;
 
 		} else {
 			echo '<h2 id="event-', $event->ID, '">', $event->post_title, $date_string, edit_post_link( '', '', '', $event->ID ), '</h2>', PHP_EOL;
 
 			$thumb = has_post_thumbnail( $event->ID ) ? get_the_post_thumbnail( $event->ID, 'img-col-horz' ) : '';
-			$url = mcw_get_custom_value( '_mcw_event_url', $custom_fields );
-			$anchor = $url ? BR . mcw_get_anchor_blank( $url, 'event website' ) : '';
+			$url = Utils\get_custom_value( '_mcw_event_url', $custom_fields );
+			$anchor = $url ? BR . Utils\get_anchor_blank( $url, 'event website' ) : '';
 			$content = wpautop( wptexturize( $event->post_content . ' ' . $anchor ) );
 ?>
 	<li class="row panel_imgright">
