@@ -232,16 +232,6 @@ protected function init_post_type ( $post_type, $type_name=null, $display_name=n
 		}
 	}
 
-	if ( isset( $this->post_thumbnails ) ) {
-		foreach ( $this->post_thumbnails as $id=>$config ) {
-			if ( $id == 'post-thumbnail' ) {
-				set_post_thumbnail_size( $config['width'], $config['height'], $config['crop'] );
-			} else {
-				add_image_size( $id, $config['width'], $config['height'], $config['crop'] );
-			}
-		}
-	}
-
 	// initialize subclass filters if defined
 	if ( method_exists( $this, 'init_filters_and_actions' ) ) {
 		$this->init_filters_and_actions();
