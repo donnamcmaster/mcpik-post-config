@@ -104,16 +104,7 @@ function __construct ( ) {
 		'type' => 'text',
 	);
 
-	$this->post_thumbnails = array(
-		'listing_img' => array(
-			'width' => 100,
-			'height' => 100,
-			'crop' => false,
-			'class' => 'listing_img',
-		),
-	);
-	$this->post_fields['thumb']['img_size'] = 'listing_img';
-
+	$this->post_fields['thumb']['img_size'] = 'listing-img';
 
 	$this->meta_boxes = array(
 		'details' => array(
