@@ -39,6 +39,8 @@ function __construct ( ) {
 		),
 	); 
 
+	$this->ads_displayed = false;
+
 	parent::init_post_type( 'ad' );
 
 	// post_parent is used for the page the ad is fixed to (if applicable)
@@ -161,7 +163,9 @@ function __construct ( ) {
 
 protected function init_filters_and_actions () {
 	add_action( 'wp_insert_post', array( $this, 'auto_reset_counters' ) );
+	add_shortcode( 'banner_ads', array( $this, 'display_ad_panel' ) );
 }
+
 
 public function auto_reset_counters ( $post_id ) {
 	global $wpdb;
@@ -223,8 +227,17 @@ public function update_counters ( $post_id ) {
 /**
  *	Display Methods
  */
-function display_ad_panel ( $posts=null ) {
+public function display_ad_panel_once () {
+
+	if ( !$this->ads_displayed ) {
+		echo $this->display_ad_panel();
+	}
+}
+
+public function display_ad_panel () {
 	global $post;
+
+	$this->ads_displayed = true;
 
 	// first check for ads fixed to this page
 	$args = array (
@@ -252,30 +265,33 @@ function display_ad_panel ( $posts=null ) {
 	$this->businesses = array();
 	$this->cols_printed = 0;
 
+	ob_start();
 ?>
 <hr class="banner-border above">
 <ul class="banner-ads row">
 
 <?php
 	if ( $static_ads ) {
-		$this->print_ad_list( $static_ads );
+		echo $this->print_ad_list( $static_ads );
 	}
 	if ( $rotators ) {
-		$this->print_ad_list( $rotators );
+		echo $this->print_ad_list( $rotators );
 	}
 ?>
 </ul><!-- banner-ads row -->
 <hr class="banner-border below">
 
 <?php
+	return ob_get_clean();
 }
 
 private function print_ad_list ( $ads ) {
+	ob_start();
 	foreach ( $ads as $ad ) {
 		if ( $this->cols_printed >= COLO_AD_COLS ) {
 			break;
 		}
-		extract( mcw_get_simple_post_custom( $ad->ID ) );
+		extract( McPik_Utils::get_simple_post_custom( $ad->ID ) );
 		if ( !isset( $_thumbnail_id ) || !$_thumbnail_id || in_array( $_mcw_ad_business, $this->businesses ) ) {
 			continue;
 		}
@@ -290,6 +306,7 @@ private function print_ad_list ( $ads ) {
 		$this->businesses[] = $_mcw_ad_business;
 		$this->cols_printed += 1; // !!! will need to check for multi-col ads
 	}
+	return ob_get_clean();
 }
 
 
