@@ -13,4 +13,10 @@ piklist('field', array(
 	'description' => __( 'A place to save internal notes. Not publicly displayed.' ),
 	'template' => 'field',
 	'columns' => '12',
+	'options' => array (
+		'media_buttons' => true,
+		'textarea_rows' => 8,
+		'teeny' => false,
+		'quicktags' => true,
+	),
 ));
