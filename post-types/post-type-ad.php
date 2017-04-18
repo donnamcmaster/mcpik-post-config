@@ -116,15 +116,7 @@ function __construct ( ) {
 		'col_width' => 'narrow',
 	);
 
-	$this->post_thumbnails = array(
-		'ad_img' => array (
-			'width' => 150,
-			'height' => 300,
-			'crop' => false,
-			'class' => 'ad_img',
-		),
-	);
-	$this->post_fields['thumb']['img_size'] = 'ad_img';
+	$this->post_fields['thumb']['img_size'] = 'banner-ad';
 
 	$this->post_fields['menu_order'] = array(
 		'scope' => 'post',
@@ -163,7 +155,7 @@ function __construct ( ) {
 
 protected function init_filters_and_actions () {
 	add_action( 'wp_insert_post', array( $this, 'auto_reset_counters' ) );
-	add_shortcode( 'banner_ads', array( $this, 'display_ad_panel' ) );
+	add_shortcode( 'banner-ads', array( $this, 'display_ad_panel' ) );
 }
 
 
@@ -298,7 +290,7 @@ private function print_ad_list ( $ads ) {
 ?>
 	<li class="col-sm-3 col-xs-6">
 		<a href="<?= $_mcw_ad_url ?>" title="<?= $ad->post_title ?>" target="_blank">
-		<?= get_the_post_thumbnail( $ad->ID, 'ad_img' ); ?>
+		<?= get_the_post_thumbnail( $ad->ID, 'banner-ad' ); ?>
 		</a>
 	</li>
 <?php
