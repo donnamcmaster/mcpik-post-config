@@ -139,8 +139,11 @@ public function dir_list( $atts ) {
 	// pick up parameters
 	extract( shortcode_atts( array(
 		'cat' => '*',
-		'head' => '',
+		'head' => false,
 	), $atts ) );
+	if ( $head == "true" ) {
+		$head = true;
+	}
 
 	// get all categories? 
 	if ( ( $cat == '*' ) || ( $cat == 'directory' ) ) {
@@ -234,7 +237,7 @@ private function get_cat_listing ( $catobj, $heading=false ) {
 	$args = array (
 		'post_type' => 'listing',
 		'menu_order' => 0,
-		'order' => 'rand',
+		'orderby' => 'rand',
 		'numberposts' => -1,
 		'dir_cat' => $catobj->slug,
 	);
