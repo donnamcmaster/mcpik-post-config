@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: McPik Post Types
+Plugin Name: McPik CLCC
 Plugin URI: http://www.donnamcmaster.com/
 Description: Object-oriented post types configuration and admin; supplements Piklist
 Version: 00.01.00
