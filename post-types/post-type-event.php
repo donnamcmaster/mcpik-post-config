@@ -204,9 +204,9 @@ public function mcw_events ( $atts ) {
 			$anchor = $url ? BR . McPik_Utils::get_anchor_blank( $url, 'event website' ) : '';
 			$content = wpautop( wptexturize( $event->post_content . ' ' . $anchor ) );
 ?>
-	<h2 id="event-<?= $event->ID;?>"><?= $event->post_title, $date_string, edit_post_link( '', '', '', $event->ID ); ?></h2>
 	<li class="row panel_imgright">
 		<div class="col-sm-7 box-text">
+			<h2 id="event-<?= $event->ID;?>"><?= $event->post_title, $date_string, edit_post_link( '', '', '', $event->ID ); ?></h2>
 			<?= $content; ?>
 		</div>
 		<div class="col-sm-5 box-image">
