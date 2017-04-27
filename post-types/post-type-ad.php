@@ -126,6 +126,7 @@ function __construct ( ) {
 		'col_title' => 'Counter',
 		'col_align' => 'right',
 		'col_width' => 'narrow',
+		'db_field' => 'menu_order',
 	);
 	$this->post_fields['_mcw_ad_odo'] = array(
 		'scope' => 'post_meta',
