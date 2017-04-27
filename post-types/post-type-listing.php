@@ -136,10 +136,13 @@ protected function init_filters_and_actions () {
  *		include all categories, with jumplinks at the top and <h2> for each cat
  */
 public function dir_list( $atts ) {
+	global $mcpk_pt_handlers;
+
 	// pick up parameters
 	extract( shortcode_atts( array(
 		'cat' => '*',
 		'head' => false,
+		'ads' => true,
 	), $atts ) );
 	if ( $head == "true" ) {
 		$head = true;
@@ -152,10 +155,21 @@ public function dir_list( $atts ) {
 
 	    $cats_list = get_terms( 'dir_cat' );
 		echo $this->get_jump_links( $cats_list );
-		reset( $cats_list );
 
+		if ( $ads ) {
+			echo $mcpk_pt_handlers['ad']->display_ad_panel();
+		}
+
+		reset( $cats_list );
+		$ad_break = ceil( count( $cats_list ) / 3 );
+		$cat_num = 1;
 		foreach ( $cats_list as $catobj ) {
 			echo $this->get_cat_listing( $catobj, true );
+			echo $this->get_back_to_top();
+			if ( $ads && ( $cat_num++ == $ad_break ) ) {
+				echo $mcpk_pt_handlers['ad']->display_ad_panel();
+				$cat_num = 1;
+			}
 		}
 		return ob_get_clean();
 
@@ -175,7 +189,6 @@ private function get_meta_item ( $item, $list ) {
 }
 
 private function get_listing ( $listing ) {
-	ob_start();
 	$meta = McPik_Utils::get_simple_post_custom( $listing->ID );
 	$_mcw_listing_alt_title = $this->get_meta_item( '_mcw_listing_alt_title', $meta );
 	$_mcw_listing_type = $this->get_meta_item( '_mcw_listing_type', $meta );
@@ -183,7 +196,7 @@ private function get_listing ( $listing ) {
 	$_mcw_listing_phone = $this->get_meta_item( '_mcw_listing_phone', $meta );
 	$_mcw_listing_email = $this->get_meta_item( '_mcw_listing_email', $meta );
 
-	$title = $_mcw_listing_alt_title ? $_mcw_listing_alt_title : $listing->post_title;
+	$title = $_mcw_listing_alt_title ? wptexturize( $_mcw_listing_alt_title ) : $listing->post_title;
 
 	// set defaults for basic, then pick up URL & descr for others
 	$prefix = $suffix = '';
@@ -191,20 +204,37 @@ private function get_listing ( $listing ) {
 		$prefix = '<a href="' . $_mcw_listing_url . '" target="_blank">';
 		$suffix = '</a>';
 	}
+
+	// create anchor for email if configured
 	$email = $_mcw_listing_email ? ' ' . McPik_Utils::get_anchor( "mailto:$_mcw_listing_email", $_mcw_listing_email ) : '';
+
+	// basic does not display description
 	if ( $_mcw_listing_type != 'bas' ) {
 		$descr = BR . wptexturize( $listing->post_content ) . $email . ' ' . $_mcw_listing_phone;
 	} else {
-		$descr = ' - ' . wptexturize( $listing->post_content ) . $email . ' ' . $_mcw_listing_phone;
+		$descr = ' - ' . $email . ' ' . $_mcw_listing_phone;
 	}
 
+	// premium: set class & add thumbnail if configured 
+	$class = '';
+	$image_code = '';
 	if ( $_mcw_listing_type == 'prem' ) {
+		$class = ' class="prem_listing cf"';
 		$image = get_the_post_thumbnail( $listing->ID, 'listing-img' );
-		echo '<li class="prem_listing cf"><div class="list_img">' . $image .'</div><div class="list_body"><strong>' . $prefix . $title . $suffix . '</strong> ';
-	} else {
-		echo '<li><div class="list_body"><strong>' . $prefix . $title . $suffix . '</strong>';
+		$image_code = $image ? '<div class="list_img">' . $image .'</div>' : '';
 	}
-	echo $descr . '</div></li>' . PHP_EOL;
+
+	// output listing
+	ob_start();
+?>
+	<li<?= $class; ?>><?= $image_code; ?>
+		<div class="list_body">
+			<strong><?= $prefix, $title, $suffix; ?></strong>
+			<?= $descr; ?>
+		</div>
+	</li>
+
+<?php
 	return ob_get_clean();
 }
 
@@ -224,7 +254,7 @@ private function get_cat_listing ( $catobj, $heading=false ) {
 	}
 	if ( $heading ) {
 ?>
-	<h2 id="dircat_<?= $catobj->term_id; ?>"><?= $heading; ?></h2>
+	<h2 class="dircat" id="dircat_<?= $catobj->term_id; ?>"><?= $heading; ?></h2>
 
 <?php
 	}
@@ -272,38 +302,51 @@ private function get_jump_links ( $cats_list ) {
 
 	// jump links for full directory listing
 	$nr_cats = count( $cats_list );
-	$nr_cols = 2;
+	$nr_cols = 3;
 	$nr_rows = $nr_cats / $nr_cols;
-	if ( ( $nr_cats % $nr_cols) <> 0 ) {
+
+	$mod = $nr_cats % $nr_cols;
+
+	if ( ( $nr_cats % $nr_cols) > 0 ) {
 		$nr_rows = ceil( $nr_rows );
 	}
 	settype( $nr_rows, 'int' );
 
 	ob_start();
 ?>
-	<div id="jump_links" class="cf">
-		<ul id="jump_1" class="jump-links">
+	<div class="jump-links row">
+		<ul class="col-sm-4">
 <?php
-	$cat_count = 1;
-	$col = 1;
+	$row_count = 0;
 	foreach ( $cats_list as $catobj ) {
-		if ( ( $col == 1 ) && ( $cat_count > $nr_rows ) ) {
-			$col++;
+		if ( ( $row_count >= $nr_rows ) ) {
 ?>
 		</ul>
-		<ul id="jump_2" class="jump-links">
+		<ul class="col-sm-4">
 <?php
+			$row_count = 0;
 		}
 ?>
 			<li><?= McPik_Utils::get_anchor( '#dircat_'.$catobj->term_id, $catobj->name ); ?></li>
 <?php
-		$cat_count++;
+		$row_count++;
 	}
 ?>
 		</ul>
 	</div>
 <?php
 	
+	return ob_get_clean();
+}
+
+private function get_back_to_top () {
+	ob_start();
+?>
+<div class="clearfix"><a href="#top" class="btn btn-default back-to-top pull-right">
+  <span class="glyphicon glyphicon-chevron-up" aria-hidden="true"></span> back to top
+</a></div>
+
+<?php
 	return ob_get_clean();
 }
 
