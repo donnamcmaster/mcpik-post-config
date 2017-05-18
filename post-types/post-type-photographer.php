@@ -60,7 +60,6 @@ function __construct ( ) {
 			'placeholder' => 'http://',
 			'class' => 'regular-text',
 		),
-
 	);
 
 	$this->meta_boxes = array(

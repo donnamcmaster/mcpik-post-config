@@ -295,6 +295,20 @@ protected static function get_details ( $post, $first_element_only=false ) {
 }
 
 
+// expects a list of post objects
+protected static function get_posts_post_list ( $post_list, $separator=', ', $link='' ) {
+	$s = '';
+	if ( $post_list ) {
+		$sep = '';
+		foreach ( $post_list as $p ) {
+			$s .= $sep . $p->post_title;
+			$sep = $separator;
+		}
+	}
+	return $s;
+}
+
+
 /**
  *	Get Post Choices
  *	- returns a selection array of post IDs & names
@@ -390,7 +404,7 @@ public function custom_column ( $column_name, $id ) {
 						'suppress_filters' => false, // This must be set to false
 					);
 					$list = get_posts( $args );
-					$s = mcw_get_posts_post_list( $list );
+					$s = self::get_posts_post_list( $list );
 					echo $s;
 					break;
 				case 'post_related':
@@ -401,14 +415,25 @@ public function custom_column ( $column_name, $id ) {
 						'suppress_filters' => false, // This must be set to false
 					);
 					$list = get_posts( $args );
-					$s = mcw_get_posts_post_list( $list );
+					$s = self::get_posts_post_list( $list );
 					echo $s;
 					break;
 			}
 
 		case 'post_meta':
+			// handles only a single post selection
+			// special case implementation for photographer
+			// needs to be handled more broadly
+			if ( ( $type == 'select' ) && isset( $post_type ) ) {
+				$selected_post_id = get_post_meta( $id, $column_name, true );
+				if ( $selected_post_id ) {
+					$selected_post = get_post( $selected_post_id );
+					if ( $selected_post ) {
+						echo $selected_post->post_title;
+					}
+				}
 			// handle case that may have multiple results
-			if ( isset( $choices ) ) {
+			} elseif ( isset( $choices ) ) {
 				$meta = get_post_meta( $id, $column_name );
 				if ( !is_array( $meta ) ) {
 					echo $choices[$meta];
