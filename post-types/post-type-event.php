@@ -50,6 +50,7 @@ function __construct ( ) {
 		'scope' => 'taxonomy',
 	);
 
+/*	NO LONGER USED
 	$this->post_fields['_mcw_event_start_date'] = array(
 		'scope' => 'post_meta',
 		'label' => 'Start date for event (required): ',
@@ -64,7 +65,7 @@ function __construct ( ) {
 		'col_title' => 'End Date',
 		'type' => 'date',
 	);
-
+*/
 
 	$this->post_fields['event_date_string'] = array(
 		'type' => 'text',
@@ -109,8 +110,22 @@ function __construct ( ) {
 		'label' => 'Contact phone number: ',
 		'col_title' => 'Phone',
 	);
-	$this->post_fields['thumb']['img_size'] = 'event_img';
+	$this->post_fields['thumb']['img_size'] = 'news-event-thumb';
 
+/*	DROPPED: use featured image for all cases
+	$this->post_fields['event_thumb'] = array(
+		'type' => 'file',
+		'scope' => 'post_meta',
+		'label' => 'for event lists',
+		'img_size' => 'news-event-thumb',
+		'col_display' => 'image',
+		'description' => 'Needs to be at least 400px wide by 300px tall. Will be cropped to a 4x3 rectangle.',
+		'options' => array(
+			'modal_title' => 'Add Thumbnail Image',
+			'button' => 'Add Thumbnail Image',
+		)
+	);
+*/
 
 	$this->meta_boxes = array(
 		'details' => array(
@@ -159,7 +174,7 @@ public function mcw_events ( $atts ) {
 	$args = array (
 		'post_type' => 'event',
 		'orderby' => 'meta_value',
-		'meta_key' => '_mcw_event_start_date',
+		'meta_key' => 'event_start_date',
 		'order' => 'ASC',
 		'posts_per_page' => $count,
 	);
@@ -168,7 +183,7 @@ public function mcw_events ( $atts ) {
 		// check freshness; keep events in the calendar for a week before cutting them off
 		$args['meta_query'] = array (
 			array(
-				'key' => '_mcw_event_start_date',
+				'key' => 'event_start_date',
 				'value' => date( 'Y-m-d', strtotime( '-1 week' ) ),
 				'compare' => '>'
 			),
@@ -189,12 +204,14 @@ public function mcw_events ( $atts ) {
 <?php
 	foreach ( $event_list as $event ) {
 		$custom_fields = get_post_custom( $event->ID );
-		$date_string = $display_date ? ' &mdash; '.McPik_Utils::get_custom_value( 'event_date_string', $custom_fields ) : '';
+//		$date_string = $display_date ? ' &mdash; '.McPik_Utils::get_custom_value( 'event_date_string', $custom_fields ) : '';
+		$date_string = $display_date ? '<br><span class="event-date">'.McPik_Utils::get_custom_value( 'event_date_string', $custom_fields ).'</span>' : '';
+		$url = "/calendar/#{$event->post_name}";
 
 		if ( $format == 'brief' ) {
 			$title = wp_texturize( $event->post_title );
 ?>
-	<li><a href="/calendar/#event-<?= $event->ID;?>"><?= $title; ?></a><?= $date_string;?></li>
+	<li><a href="<?= $url;?>"><?= $title; ?></a><?= $date_string;?></li>
 
 <?php
 
@@ -206,8 +223,8 @@ public function mcw_events ( $atts ) {
 ?>
 	<li class="row panel_imgright">
 		<div class="col-sm-7 box-text">
-			<h2 id="event-<?= $event->ID;?>"><?= $event->post_title, $date_string, edit_post_link( '', '', '', $event->ID ); ?></h2>
-			<?= $content; ?>
+			<h2 class="jump-target" id="<?= $event->post_name;?>"><?= $event->post_title, $date_string; ?></h2>
+			<?= $content, edit_post_link( '', '', '', $event->ID ); ?>
 		</div>
 		<div class="col-sm-5 box-image">
 			<?= $thumb; ?>
@@ -230,8 +247,8 @@ public function mcw_events ( $atts ) {
 public function manage_columns ( $defaults ) {
     unset( $defaults['date'] );
     unset( $defaults['author'] );
-    $defaults['_mcw_event_start_date'] = __( 'Start' );
-    $defaults['_mcw_event_end_date'] = __( 'End' );
+    $defaults['event_date_string'] = __( 'Event Date' );
+    $defaults['event_start_date'] = __( 'Sort Date' );
     $defaults['_mcw_event_url'] = __( 'URL' );
     $defaults['calendar'] = __( 'Calendars' );
     $defaults['thumb'] = __( 'Image' );
