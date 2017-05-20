@@ -254,7 +254,7 @@ private function get_cat_listing ( $catobj, $heading=false ) {
 	}
 	if ( $heading ) {
 ?>
-	<h2 class="dircat" id="dircat_<?= $catobj->term_id; ?>"><?= $heading; ?></h2>
+	<h2 class="jump-target" id="dircat_<?= $catobj->term_id; ?>"><?= $heading; ?></h2>
 
 <?php
 	}
