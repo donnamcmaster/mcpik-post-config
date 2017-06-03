@@ -9,6 +9,10 @@
  *	@since McPik Post Types 1.0
  */
 
+define( 'INCLUDES_DIRECTORY', '/mcw_listing/' );
+define( 'INCLUDES_PATH', $_SERVER['DOCUMENT_ROOT'] . INCLUDES_DIRECTORY );
+define( 'INCLUDES_LOCK_FILE', INCLUDES_PATH . 'lock.txt' );
+
 Class McPik_Post_Type_Listing extends McPik_Post_Type {
 
 function __construct ( ) {
@@ -119,6 +123,7 @@ function __construct ( ) {
 
 protected function init_filters_and_actions () {
 	add_shortcode( 'dir_list', array( $this, 'dir_list' ) );
+	add_action( 'save_post', array( $this, 'write_directory_files' ) );
 }
 
 
@@ -183,6 +188,97 @@ public function dir_list( $atts ) {
 		}
 	}
 }
+
+
+/**
+ *	Write Directory Files:
+ *	called whenever a post is saved (hook save_post)
+ *	if this is an updated listing, then we write a new set of files to INCLUDES_PATH
+ *	files written include "directory.inc" (all listings, jump links, headers) plus
+ *		one listings-only file for each cat, named "<cat_name>.inc"
+ *	future optimization: write only the file(s) for the cat(s) containing this listing
+ *	note that in spite of the opt, we would still need to parse all listings/cats
+ *		in order to create the full directory file
+ *	creates a lock file for the duration of the writes to prevent conflict
+ *	to avoid browsers picking up partial listings, new files are written as "<fname>.tmp"; 
+ *		once a file is complete, the "<fname>.inc" is deleted and the tmp file is renamed 
+ */
+
+function write_directory_files ( $post_id ) {
+	// if it's a revision or the wrong post type, we're not interested
+	if ( wp_is_post_revision( $post_id ) || 
+		( $this->post_type != get_post_type( $post_id ) ) ||
+		( get_post_status( $post_id ) != 'publish' ) 
+		) {
+        return;
+    }
+
+	// to optimize and only rewrite affected category (ies)
+//	$listing_cats = wp_get_post_terms( $post_id, 'dir_cat' );
+
+    // use lock file to prevent access conflict
+    if ( file_exists( INCLUDES_LOCK_FILE ) ) {
+    	mcw_print_debug( "write_directory_files: access conflict" );
+    	return;
+    }
+    $lock_handle = fopen( INCLUDES_LOCK_FILE, 'w' ) or die( 'Cannot open file:  '.INCLUDES_LOCK_FILE );
+    fclose( $lock_handle );
+
+	// pick up a list of categories
+    $all_cats = get_terms( 'dir_cat' );
+
+	// write a file for the category list 
+    $catlist_handle = $this->prepare_to_write_file( 'catlist', 'json' );
+	fwrite( $catlist_handle, json_encode( $all_cats ) );
+	$this->save_and_close_file ( $catlist_handle, 'catlist', 'json' );
+
+	// write a file for the jumplinks 
+    $jumps_handle = $this->prepare_to_write_file( 'jumplinks', 'html' );
+	fwrite( $jumps_handle, $this->get_jump_links( $all_cats ) );
+	$this->save_and_close_file( $jumps_handle, 'jumplinks', 'html' );
+
+	// each cat is written to an individual file
+	reset( $all_cats );
+	foreach ( $all_cats as $catobj ) {
+//		$this->write_cat_to_file( $catobj );
+	}
+	
+	// must remove the lock file!
+	unlink( INCLUDES_LOCK_FILE );
+}
+
+// pass the name without the ".xxx" extension
+// returns a file handle
+function prepare_to_write_file ( $name ) {
+	// open a temporary file
+	$temp_fname = INCLUDES_PATH . "$name.tmp";
+    if ( file_exists( $temp_fname ) ) {
+		unlink( $temp_fname );
+	}
+    $file_handle = fopen( $temp_fname, 'w' ) or die( 'Cannot open file:  '.$temp_fname );
+    return $file_handle;
+}
+
+function save_and_close_file ( $file_handle, $name, $extension ) {
+	$temp_fname = INCLUDES_PATH . "$name.tmp";
+	$real_fname = INCLUDES_PATH . "$name.$extension";
+    fclose( $file_handle );
+    if ( file_exists( $real_fname ) ) {
+		unlink( $real_fname );
+	}
+	rename( $temp_fname, $real_fname);
+}
+
+
+function write_cat_to_file ( $catobj ) {
+    $file_handle = $this->prepare_to_write_file ( $catobj->slug );
+
+	$cat_string = $this->get_cat_listing( $catobj );
+
+	fwrite( $cat_handle, $cat_string );
+	$this->save_and_close_file( $file_handle, $catobj->slug, 'json' );
+}
+
 
 private function get_meta_item ( $item, $list ) {
 	return array_key_exists( $item, $list ) ? $list[$item] : '';
