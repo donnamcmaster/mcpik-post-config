@@ -16,6 +16,7 @@ define( 'INCLUDES_LOCK_FILE', INCLUDES_PATH . 'lock.txt' );
 Class McPik_Post_Type_Listing extends McPik_Post_Type {
 
 function __construct ( ) {
+
 	$this->register_args = array(
 		'public' => false,
 		'publicly_queryable' => false,
@@ -40,6 +41,13 @@ function __construct ( ) {
 		),
 	); 
 
+	// only coloma.com (& coloma.dev) config listings & write listings files; 
+	// theamericanriver.com (& tar.dev) just read the files
+	$this->is_coloma = ( $_SERVER['HTTP_HOST'][0] == 'c' );
+	if ( !$this->is_coloma ) {
+		// don't register the post_type
+		$this->registered = true;
+	}
 	parent::init_post_type( 'listing' );
 
 	$this->default_sort_by = 'menu_order title';
@@ -123,7 +131,9 @@ function __construct ( ) {
 
 protected function init_filters_and_actions () {
 	add_shortcode( 'dir_list', array( $this, 'dir_list' ) );
-	add_action( 'save_post', array( $this, 'write_directory_files' ) );
+	if ( $this->is_coloma ) {
+		add_action( 'save_post', array( $this, 'write_directory_files' ) );
+	}
 }
 
 
@@ -189,9 +199,36 @@ public function dir_list( $atts ) {
 	}
 }
 
+/**
+ *
+ *	Writing Directory Files
+ *
+ */
+
+// pass the name without the ".xxx" extension
+// returns a file handle
+private function prepare_to_write_file ( $name ) {
+	// open a temporary file
+	$temp_fname = INCLUDES_PATH . "$name.tmp";
+    if ( file_exists( $temp_fname ) ) {
+		unlink( $temp_fname );
+	}
+    $file_handle = fopen( $temp_fname, 'w' ) or die( 'Cannot open file:  '.$temp_fname );
+    return $file_handle;
+}
+
+private function save_and_close_file ( $file_handle, $name, $extension ) {
+	$temp_fname = INCLUDES_PATH . "$name.tmp";
+	$real_fname = INCLUDES_PATH . "$name.$extension";
+    fclose( $file_handle );
+    if ( file_exists( $real_fname ) ) {
+		unlink( $real_fname );
+	}
+	rename( $temp_fname, $real_fname);
+}
 
 /**
- *	Write Directory Files:
+ *	Write Directory Files: NEEDS UPDATE
  *	called whenever a post is saved (hook save_post)
  *	if this is an updated listing, then we write a new set of files to INCLUDES_PATH
  *	files written include "directory.inc" (all listings, jump links, headers) plus
@@ -206,7 +243,7 @@ public function dir_list( $atts ) {
 
 function write_directory_files ( $post_id ) {
 	// if it's a revision or the wrong post type, we're not interested
-	if ( wp_is_post_revision( $post_id ) || 
+	if ( !$this->is_coloma || wp_is_post_revision( $post_id ) || 
 		( $this->post_type != get_post_type( $post_id ) ) ||
 		( get_post_status( $post_id ) != 'publish' ) 
 		) {
@@ -240,45 +277,54 @@ function write_directory_files ( $post_id ) {
 	// each cat is written to an individual file
 	reset( $all_cats );
 	foreach ( $all_cats as $catobj ) {
-//		$this->write_cat_to_file( $catobj );
+		$this->write_cat_to_file( $catobj );
 	}
 	
 	// must remove the lock file!
 	unlink( INCLUDES_LOCK_FILE );
 }
 
-// pass the name without the ".xxx" extension
-// returns a file handle
-function prepare_to_write_file ( $name ) {
-	// open a temporary file
-	$temp_fname = INCLUDES_PATH . "$name.tmp";
-    if ( file_exists( $temp_fname ) ) {
-		unlink( $temp_fname );
+private function write_cat_to_file ( $catobj ) {
+
+	// write the premium listings with priority 0 to a sortable array
+	// & write the array to a json file
+	$premium_0 = array();
+	$args = array (
+		'post_type' => 'listing',
+		'menu_order' => 0,
+		'numberposts' => -1,
+		'dir_cat' => $catobj->slug,
+	);
+	$listings_0 = get_posts( $args );
+	if ( $listings_0 ) {
+		$premium_handle = $this->prepare_to_write_file ( $catobj->slug.'_0' );
+		foreach ( $listings_0 as $listing ) {
+			$premium_0[] = $this->get_listing( $listing );
+		}
+		fwrite( $premium_handle, json_encode( $premium_0 ) );
+		$this->save_and_close_file( $premium_handle, $catobj->slug.'_0', 'json' );
 	}
-    $file_handle = fopen( $temp_fname, 'w' ) or die( 'Cannot open file:  '.$temp_fname );
-    return $file_handle;
-}
 
-function save_and_close_file ( $file_handle, $name, $extension ) {
-	$temp_fname = INCLUDES_PATH . "$name.tmp";
-	$real_fname = INCLUDES_PATH . "$name.$extension";
-    fclose( $file_handle );
-    if ( file_exists( $real_fname ) ) {
-		unlink( $real_fname );
+	// get the remaining listings
+	// & write them to a text file
+	$args = array (
+		'post_type' => 'listing',
+		'orderby' => $this->default_sort_by,
+		'order' => $this->default_sort_order,
+		'numberposts' => -1,
+		'dir_cat' => $catobj->slug,
+	);
+	$listings = get_posts( $args );
+	if ( $listings ) {
+		$file_handle = $this->prepare_to_write_file ( $catobj->slug );
+		foreach ( $listings as $listing ) {
+			if ( $listing->menu_order > 0 ) { 
+				fwrite( $file_handle, $this->get_listing( $listing ) );
+			}
+		}
+		$this->save_and_close_file( $file_handle, $catobj->slug, 'txt' );
 	}
-	rename( $temp_fname, $real_fname);
 }
-
-
-function write_cat_to_file ( $catobj ) {
-    $file_handle = $this->prepare_to_write_file ( $catobj->slug );
-
-	$cat_string = $this->get_cat_listing( $catobj );
-
-	fwrite( $cat_handle, $cat_string );
-	$this->save_and_close_file( $file_handle, $catobj->slug, 'json' );
-}
-
 
 private function get_meta_item ( $item, $list ) {
 	return array_key_exists( $item, $list ) ? $list[$item] : '';
@@ -317,77 +363,20 @@ private function get_listing ( $listing ) {
 	if ( $_mcw_listing_type == 'prem' ) {
 		$class = ' class="prem_listing cf"';
 		$image = get_the_post_thumbnail( $listing->ID, 'listing-img' );
-		$image_code = $image ? '<div class="list_img">' . $image .'</div>' : '';
+		$image_code = $image ? '<div class="list_img">' . $image .'</div>'.PHP_EOL : '';
 	}
 
 	// output listing
 	ob_start();
 ?>
-	<li<?= $class; ?>><?= $image_code; ?>
-		<div class="list_body">
-			<strong><?= $prefix, $title, $suffix; ?></strong>
-			<?= $descr; ?>
-		</div>
-	</li>
+<li<?= $class; ?>>
+	<?= $image_code; ?>
+	<div class="list_body">
+		<strong><?= $prefix, $title, $suffix; ?></strong>
+		<?= $descr; ?>
 
-<?php
-	return ob_get_clean();
-}
-
-
-/*
-	$heading:
-		false or null value => don't display any heading
-		boolean true => display cat name
-		any other value => display that value
-*/
-private function get_cat_listing ( $catobj, $heading=false ) {
-
-	ob_start();
-
-	if ( $heading === true ) {
-		$heading = $catobj->name;
-	}
-	if ( $heading ) {
-?>
-	<h2 class="jump-target" id="dircat_<?= $catobj->term_id; ?>"><?= $heading; ?></h2>
-
-<?php
-	}
-
-?>
-	<ul class="dir_listings">
-
-<?php
-	// get the premium listings with priority 0
-	$args = array (
-		'post_type' => 'listing',
-		'menu_order' => 0,
-		'orderby' => 'rand',
-		'numberposts' => -1,
-		'dir_cat' => $catobj->slug,
-	);
-	$listings = get_posts( $args );
-	foreach ( $listings as $listing ) {
-		echo $this->get_listing( $listing );
-	}
-
-	// get the remaining listings
-	$args = array (
-		'post_type' => 'listing',
-		'orderby' => $this->default_sort_by,
-		'order' => $this->default_sort_order,
-		'numberposts' => -1,
-		'dir_cat' => $catobj->slug,
-	);
-	$listings = get_posts( $args );
-	foreach ( $listings as $listing ) {
-		if ( $listing->menu_order > 0 ) { 
-			echo $this->get_listing( $listing );
-		}
-	}
-?>
-	</ul>
+	</div>
+</li>
 
 <?php
 	return ob_get_clean();
@@ -410,26 +399,26 @@ private function get_jump_links ( $cats_list ) {
 
 	ob_start();
 ?>
-	<div class="jump-links row">
-		<ul class="col-sm-4">
+<div class="jump-links row">
+	<ul class="col-sm-4">
 <?php
 	$row_count = 0;
 	foreach ( $cats_list as $catobj ) {
 		if ( ( $row_count >= $nr_rows ) ) {
 ?>
-		</ul>
-		<ul class="col-sm-4">
+	</ul>
+	<ul class="col-sm-4">
 <?php
 			$row_count = 0;
 		}
 ?>
-			<li><?= McPik_Utils::get_anchor( '#dircat_'.$catobj->term_id, $catobj->name ); ?></li>
+		<li><?= McPik_Utils::get_anchor( '#dircat_'.$catobj->term_id, $catobj->name ); ?></li>
 <?php
 		$row_count++;
 	}
 ?>
-		</ul>
-	</div>
+	</ul>
+</div>
 <?php
 	
 	return ob_get_clean();
@@ -445,6 +434,72 @@ private function get_back_to_top () {
 <?php
 	return ob_get_clean();
 }
+
+private function get_cat_heading ( $catobj, $heading=true ) {
+	if ( $heading === true ) {
+		$heading = $catobj->name;
+	}
+	ob_start();
+?>
+	<h2 class="jump-target" id="dircat_<?= $catobj->term_id; ?>"><?= $heading; ?></h2>
+
+<?php
+	return ob_get_clean();
+}
+
+
+/*
+	$heading:
+		false or null value => don't display any heading
+		boolean true => display cat name
+		any other value => display that value
+*/
+private function get_cat_listing ( $catobj, $heading=false ) {
+	ob_start();
+
+	if ( $heading ) {
+		echo $this->get_cat_heading( $catobj, $heading );
+	}
+?>
+	<ul class="dir_listings">
+
+<?php
+	// look for premium 0 listings
+	$fname = INCLUDES_PATH . "{$catobj->slug}_0.json";
+	if ( file_exists( $fname) ) {
+		$handle = fopen( $fname, 'r' );
+		$p0_json = fread( $handle, filesize( $fname ) );
+		fclose( $handle );
+		
+		$p0_array = json_decode( $p0_json );
+		$nr_items = sizeof( $p0_array );
+
+		// start at random point in the premium 0 array
+		$initial = mt_rand( 0, $nr_items-1 );
+		for ( $i = $initial; $i < $nr_items; $i++ ) {
+			echo $p0_array[$i];
+		}
+		// now print from 1st of array to initial
+		for ( $i = 0; $i < $initial; $i++ ) {
+			echo $p0_array[$i];
+		}
+	}
+
+	// look for the rest of the listings
+	$fname = INCLUDES_PATH . "{$catobj->slug}.txt";
+	if ( file_exists( $fname) ) {
+		$handle = fopen( $fname, 'r' );
+		$rest_of_listings = fread( $handle, filesize( $fname ) );
+		fclose( $handle );
+
+		echo $rest_of_listings;
+	}
+?>
+	</ul>
+
+<?php
+	return ob_get_clean();
+} // get_cat_listing
 
 
 /**
