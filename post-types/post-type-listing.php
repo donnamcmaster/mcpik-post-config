@@ -9,7 +9,7 @@
  *	@since McPik Post Types 1.0
  */
 
-define( 'INCLUDES_DIRECTORY', '/mcw_listing/' );
+define( 'INCLUDES_DIRECTORY', '/mcw-listing/' );
 define( 'INCLUDES_PATH', $_SERVER['DOCUMENT_ROOT'] . INCLUDES_DIRECTORY );
 define( 'INCLUDES_LOCK_FILE', INCLUDES_PATH . 'lock.txt' );
 
@@ -43,10 +43,10 @@ function __construct ( ) {
 
 	// only coloma.com (& coloma.dev) config listings & write listings files; 
 	// theamericanriver.com (& tar.dev) just read the files
-	$this->is_coloma = ( $_SERVER['HTTP_HOST'][0] == 'c' );
+	$this->is_coloma = true; //( $_SERVER['HTTP_HOST'][0] == 'c' );
 	if ( !$this->is_coloma ) {
 		// don't register the post_type
-		$this->registered = true;
+//		$this->registered = true;
 	}
 	parent::init_post_type( 'listing' );
 
@@ -138,7 +138,7 @@ protected function init_filters_and_actions () {
 
 
 /**
- *	Display Methods
+ *	Shortcode Display
  */
 
 /**
@@ -168,18 +168,17 @@ public function dir_list( $atts ) {
 		// pull requested info into output buffer
 		ob_start();
 
-	    $cats_list = get_terms( 'dir_cat' );
-		echo $this->get_jump_links( $cats_list );
+		echo $this->retrieve_jump_links();
 
 		if ( $ads ) {
 			echo $mcpk_pt_handlers['ad']->display_ad_panel();
 		}
 
-		reset( $cats_list );
-		$ad_break = ceil( count( $cats_list ) / 3 );
+	    $catlist = $this->retrieve_catlist();
 		$cat_num = 1;
-		foreach ( $cats_list as $catobj ) {
-			echo $this->get_cat_listing( $catobj, true );
+		$ad_break = ceil( sizeof( $catlist ) / 3 );
+		foreach ( $catlist as $cat_info ) {
+			echo $this->retrieve_cat_listing( $cat_info, true );
 			echo $this->get_back_to_top();
 			if ( $ads && ( $cat_num++ == $ad_break ) ) {
 				echo $mcpk_pt_handlers['ad']->display_ad_panel();
@@ -189,9 +188,9 @@ public function dir_list( $atts ) {
 		return ob_get_clean();
 
 	} else {
-		$catobj = get_term_by( 'slug', $cat, 'dir_cat' );
-		if ( $catobj ) { 
-			return $this->get_cat_listing( $catobj, $head );
+		$cat_info = get_term_by( 'slug', $cat, 'dir_cat', ARRAY_A );
+		if ( $cat_info ) { 
+			return $this->retrieve_cat_listing( $cat_info, $head );
 		} else {
 			mcw_log( "McPik_Post_Type_Listing::dir_list > can't find $cat" );
 			return '';
@@ -201,7 +200,7 @@ public function dir_list( $atts ) {
 
 /**
  *
- *	Writing Directory Files
+ *	Write Listing Files
  *
  */
 
@@ -277,14 +276,14 @@ function write_directory_files ( $post_id ) {
 	// each cat is written to an individual file
 	reset( $all_cats );
 	foreach ( $all_cats as $catobj ) {
-		$this->write_cat_to_file( $catobj );
+		$this->write_cat_listing( $catobj );
 	}
 	
 	// must remove the lock file!
 	unlink( INCLUDES_LOCK_FILE );
 }
 
-private function write_cat_to_file ( $catobj ) {
+private function write_cat_listing ( $catobj ) {
 
 	// write the premium listings with priority 0 to a sortable array
 	// & write the array to a json file
@@ -299,7 +298,7 @@ private function write_cat_to_file ( $catobj ) {
 	if ( $listings_0 ) {
 		$premium_handle = $this->prepare_to_write_file ( $catobj->slug.'_0' );
 		foreach ( $listings_0 as $listing ) {
-			$premium_0[] = $this->get_listing( $listing );
+			$premium_0[] = $this->write_single_listing( $listing );
 		}
 		fwrite( $premium_handle, json_encode( $premium_0 ) );
 		$this->save_and_close_file( $premium_handle, $catobj->slug.'_0', 'json' );
@@ -319,10 +318,10 @@ private function write_cat_to_file ( $catobj ) {
 		$file_handle = $this->prepare_to_write_file ( $catobj->slug );
 		foreach ( $listings as $listing ) {
 			if ( $listing->menu_order > 0 ) { 
-				fwrite( $file_handle, $this->get_listing( $listing ) );
+				fwrite( $file_handle, $this->write_single_listing( $listing ) );
 			}
 		}
-		$this->save_and_close_file( $file_handle, $catobj->slug, 'txt' );
+		$this->save_and_close_file( $file_handle, $catobj->slug, 'html' );
 	}
 }
 
@@ -330,7 +329,7 @@ private function get_meta_item ( $item, $list ) {
 	return array_key_exists( $item, $list ) ? $list[$item] : '';
 }
 
-private function get_listing ( $listing ) {
+private function write_single_listing ( $listing ) {
 	$meta = McPik_Utils::get_simple_post_custom( $listing->ID );
 	$_mcw_listing_alt_title = $this->get_meta_item( '_mcw_listing_alt_title', $meta );
 	$_mcw_listing_type = $this->get_meta_item( '_mcw_listing_type', $meta );
@@ -424,6 +423,11 @@ private function get_jump_links ( $cats_list ) {
 	return ob_get_clean();
 }
 
+
+/**
+ *	Retrieve Data from Files
+ */
+
 private function get_back_to_top () {
 	ob_start();
 ?>
@@ -435,16 +439,45 @@ private function get_back_to_top () {
 	return ob_get_clean();
 }
 
-private function get_cat_heading ( $catobj, $heading=true ) {
+private function get_cat_heading ( $cat, $heading=true ) {
 	if ( $heading === true ) {
-		$heading = $catobj->name;
+		$heading = $cat['name'];
 	}
 	ob_start();
 ?>
-	<h2 class="jump-target" id="dircat_<?= $catobj->term_id; ?>"><?= $heading; ?></h2>
+	<h2 class="jump-target" id="dircat_<?= $cat['term_id']; ?>"><?= $heading; ?></h2>
 
 <?php
 	return ob_get_clean();
+}
+
+
+private function retrieve_jump_links () {
+	$fname = INCLUDES_PATH . 'jumplinks.html';
+	if ( file_exists( $fname ) ) {
+		$handle = fopen( $fname, 'r' );
+		$jumplinks = fread( $handle, filesize( $fname ) );
+		fclose( $handle );
+	} else {
+		mcw_log( "retrieve_jump_links: can't open jumplinks file: $fname" );
+		$jumplinks = '';
+	}
+	return $jumplinks;
+}
+
+
+private function retrieve_catlist () {
+	$fname = INCLUDES_PATH . 'catlist.json';
+	if ( file_exists( $fname ) ) {
+		$handle = fopen( $fname, 'r' );
+		$catlist_json = fread( $handle, filesize( $fname ) );
+		$catlist = json_decode( $catlist_json, true );
+		fclose( $handle );
+	} else {
+		mcw_log( "retrieve_catlist: can't open catlist file: $fname" );
+		$catlist = '';
+	}
+	return $catlist;
 }
 
 
@@ -454,24 +487,24 @@ private function get_cat_heading ( $catobj, $heading=true ) {
 		boolean true => display cat name
 		any other value => display that value
 */
-private function get_cat_listing ( $catobj, $heading=false ) {
+private function retrieve_cat_listing ( $cat, $heading=false ) {
 	ob_start();
 
 	if ( $heading ) {
-		echo $this->get_cat_heading( $catobj, $heading );
+		echo $this->get_cat_heading( $cat, $heading );
 	}
 ?>
 	<ul class="dir_listings">
 
 <?php
 	// look for premium 0 listings
-	$fname = INCLUDES_PATH . "{$catobj->slug}_0.json";
+	$fname = INCLUDES_PATH . "{$cat['slug']}_0.json";
 	if ( file_exists( $fname) ) {
 		$handle = fopen( $fname, 'r' );
 		$p0_json = fread( $handle, filesize( $fname ) );
 		fclose( $handle );
 		
-		$p0_array = json_decode( $p0_json );
+		$p0_array = json_decode( $p0_json, true );
 		$nr_items = sizeof( $p0_array );
 
 		// start at random point in the premium 0 array
@@ -486,7 +519,7 @@ private function get_cat_listing ( $catobj, $heading=false ) {
 	}
 
 	// look for the rest of the listings
-	$fname = INCLUDES_PATH . "{$catobj->slug}.txt";
+	$fname = INCLUDES_PATH . "{$cat['slug']}.html";
 	if ( file_exists( $fname) ) {
 		$handle = fopen( $fname, 'r' );
 		$rest_of_listings = fread( $handle, filesize( $fname ) );
@@ -499,7 +532,7 @@ private function get_cat_listing ( $catobj, $heading=false ) {
 
 <?php
 	return ob_get_clean();
-} // get_cat_listing
+} // retrieve_cat_listing
 
 
 /**
