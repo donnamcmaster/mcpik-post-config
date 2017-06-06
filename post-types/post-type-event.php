@@ -220,14 +220,17 @@ public function mcw_events ( $atts ) {
 			$url = McPik_Utils::get_custom_value( '_mcw_event_url', $custom_fields );
 			$anchor = $url ? BR . McPik_Utils::get_anchor_blank( $url, 'event website' ) : '';
 			$content = wpautop( wptexturize( $event->post_content . ' ' . $anchor ) );
+
 ?>
-	<li class="row panel_imgright">
-		<div class="col-sm-7 box-text">
-			<h2 class="jump-target" id="<?= $event->post_name;?>"><?= $event->post_title, $date_string; ?></h2>
-			<?= $content, edit_post_link( '', '', '', $event->ID ); ?>
-		</div>
-		<div class="col-sm-5 box-image">
-			<?= $thumb; ?>
+	<li>
+		<h2 class="jump-target" id="<?= $event->post_name;?>"><?= $event->post_title, $date_string; ?></h2>
+		<div class="row panel_imgright">
+			<div class="col-sm-7 box-text">
+				<?= $content, edit_post_link( '', '', '', $event->ID ); ?>
+			</div>
+			<div class="col-sm-5 box-image">
+				<?= $thumb; ?>
+			</div>
 		</div>
 	</li>
 <?php
