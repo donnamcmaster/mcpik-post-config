@@ -225,11 +225,11 @@ public function mcw_events ( $atts ) {
 	<li>
 		<h2 class="jump-target" id="<?= $event->post_name;?>"><?= $event->post_title, $date_string; ?></h2>
 		<div class="row panel_imgright">
-			<div class="col-sm-7 box-text">
-				<?= $content, edit_post_link( '', '', '', $event->ID ); ?>
-			</div>
 			<div class="col-sm-5 box-image">
 				<?= $thumb; ?>
+			</div>
+			<div class="col-sm-7 box-text">
+				<?= $content, edit_post_link( '', '', '', $event->ID ); ?>
 			</div>
 		</div>
 	</li>
