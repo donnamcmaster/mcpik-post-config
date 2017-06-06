@@ -216,7 +216,7 @@ public function mcw_events ( $atts ) {
 <?php
 
 		} else {
-			$thumb = has_post_thumbnail( $event->ID ) ? get_the_post_thumbnail( $event->ID, 'img-col-horz' ) : '';
+			$thumb = has_post_thumbnail( $event->ID ) ? get_the_post_thumbnail( $event->ID, 'img-5col-horz' ) : '';
 			$url = McPik_Utils::get_custom_value( '_mcw_event_url', $custom_fields );
 			$anchor = $url ? BR . McPik_Utils::get_anchor_blank( $url, 'event website' ) : '';
 			$content = wpautop( wptexturize( $event->post_content . ' ' . $anchor ) );
