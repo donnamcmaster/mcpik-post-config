@@ -429,6 +429,33 @@ private function get_jump_links ( $cats_list ) {
  *	Retrieve Data from Files
  */
 
+private function read_from_local_file ( $fname, $report_error ) {
+	$contents = '';
+	if ( file_exists( $fname ) ) {
+		if ( filesize( $fname ) > 0 ) {
+			$handle = fopen( $fname, 'r' );
+			$contents = fread( $handle, filesize( $fname ) );
+			fclose( $handle );
+		}
+
+	} elseif ( $report_error ) {
+		mcw_log( "read_from_local_file: no such file: $fname" );
+	}
+	return $contents;
+}
+
+private function read_from_remote_file ( $fname ) {
+	return null;
+}
+
+private function read_from_file ( $fname, $report_error=true ) {
+	if ( $this->is_coloma ) {
+		return $this->read_from_local_file( $fname, $report_error );
+	} else {
+		return $this->read_from_remote_file( $fname, $report_error );
+	}
+}
+
 private function get_back_to_top () {
 	ob_start();
 ?>
@@ -454,31 +481,13 @@ private function get_cat_heading ( $cat, $heading=true ) {
 
 
 private function retrieve_jump_links () {
-	$fname = INCLUDES_PATH . 'jumplinks.html';
-	if ( file_exists( $fname ) ) {
-		$handle = fopen( $fname, 'r' );
-		$jumplinks = fread( $handle, filesize( $fname ) );
-		fclose( $handle );
-	} else {
-		mcw_log( "retrieve_jump_links: can't open jumplinks file: $fname" );
-		$jumplinks = '';
-	}
-	return $jumplinks;
+	return $this->read_from_file( INCLUDES_PATH . 'jumplinks.html' );
 }
 
 
 private function retrieve_catlist () {
-	$fname = INCLUDES_PATH . 'catlist.json';
-	if ( file_exists( $fname ) ) {
-		$handle = fopen( $fname, 'r' );
-		$catlist_json = fread( $handle, filesize( $fname ) );
-		$catlist = json_decode( $catlist_json, true );
-		fclose( $handle );
-	} else {
-		mcw_log( "retrieve_catlist: can't open catlist file: $fname" );
-		$catlist = '';
-	}
-	return $catlist;
+	$catlist_json = $this->read_from_file( INCLUDES_PATH . 'catlist.json' );
+	return json_decode( $catlist_json, true );
 }
 
 
@@ -498,13 +507,9 @@ private function retrieve_cat_listing ( $cat, $heading=false ) {
 	<ul class="dir_listings">
 
 <?php
-	// look for premium 0 listings
-	$fname = INCLUDES_PATH . "{$cat['slug']}_0.json";
-	if ( file_exists( $fname) ) {
-		$handle = fopen( $fname, 'r' );
-		$p0_json = fread( $handle, filesize( $fname ) );
-		fclose( $handle );
-		
+	// look for premium 0 listings; don't report error
+	$p0_json = $this->read_from_file( INCLUDES_PATH . "{$cat['slug']}_0.json", false );
+	if ( $p0_json ) {
 		$p0_array = json_decode( $p0_json, true );
 		$nr_items = sizeof( $p0_array );
 
@@ -519,15 +524,8 @@ private function retrieve_cat_listing ( $cat, $heading=false ) {
 		}
 	}
 
-	// look for the rest of the listings
-	$fname = INCLUDES_PATH . "{$cat['slug']}.html";
-	if ( file_exists( $fname) ) {
-		$handle = fopen( $fname, 'r' );
-		$rest_of_listings = fread( $handle, filesize( $fname ) );
-		fclose( $handle );
-
-		echo $rest_of_listings;
-	}
+	// print the rest of the listings
+	echo $this->read_from_file( INCLUDES_PATH . "{$cat['slug']}.html" );
 ?>
 	</ul>
 
