@@ -43,10 +43,11 @@ function __construct ( ) {
 
 	// only coloma.com (& coloma.dev) config listings & write listings files; 
 	// theamericanriver.com (& tar.dev) just read the files
-	$this->is_coloma = true; //( $_SERVER['HTTP_HOST'][0] == 'c' );
+	$this->is_coloma = ( strpos( $_SERVER['HTTP_HOST'], 'col' ) !== false );
+	
 	if ( !$this->is_coloma ) {
 		// don't register the post_type
-//		$this->registered = true;
+		$this->registered = true;
 	}
 	parent::init_post_type( 'listing' );
 
