@@ -3,7 +3,6 @@
 Title: Media Credit Details
 Description: 
 Taxonomy: media_credit
-New: true
 */
 
 piklist( 'field', array(
@@ -26,17 +25,4 @@ piklist( 'field', array(
 		'modal_title' => 'Add Image',
 		'button' => 'Add Image',
 	)
-));
-
-piklist( 'field', array(
-	'type' => 'editor',
-	'field' => 'scratchpad',
-	'label' => __( 'Scratchpad' ),
-	'columns' => '12',
-	'options' => array (
-		'media_buttons' => true,
-		'textarea_rows' => 8,
-		'teeny' => false,
-		'quicktags' => true,
-	),
 ));
