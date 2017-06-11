@@ -253,6 +253,8 @@ public function display_ad_panel () {
 			'numberposts' => $nr_rotators * 2,
 			);
 		$rotators = get_posts( $args );
+	} else {
+		$rotators = null;
 	}
 
 	$this->businesses = array();
