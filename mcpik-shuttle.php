@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: McPik CLCC
+Plugin Name: McPik Shuttle
 Plugin URI: http://www.donnamcmaster.com/
 Description: Object-oriented post types configuration and admin; supplements Piklist
 Version: 00.01.00
@@ -10,6 +10,7 @@ Plugin Type: Piklist
 License: GPL2 (see _LICENSE.TXT)
 
 05-Jun-2016	DMc	customized for Coloma.com
+10-Mar-2018	DMc	customized for ColomaShuttle.com
 */
 
 if ( !defined( 'ABSPATH' ) ) {
@@ -70,8 +71,8 @@ function mcpk_init_pt_handlers() {
 	}
 }
 
-add_filter( 'piklist_taxonomies', 'mcw_taxonomies' );
-function mcw_taxonomies ( $taxonomies ) {
+//add_filter( 'piklist_taxonomies', 'mcpk_taxonomies' );
+function mcpk_taxonomies ( $taxonomies ) {
 	$taxonomies[] = array(
 		'post_type' => array( 'post' ),
 		'name' => 'post_roles',
@@ -84,33 +85,28 @@ function mcw_taxonomies ( $taxonomies ) {
 			'rewrite' => false,
 		),
 	);
-	$taxonomies[] = array(
-		'post_type' => 'event',
-		'name' => 'event_roles',
-		'show_admin_column' => true,
-		'configuration' => array(
-			'hierarchical' => true,
-			'labels' => piklist( 'taxonomy_labels', 'Event Roles' ),
-			'show_ui' => true,
-			'query_var' => true,
-			'rewrite' => false,
-		),
-	);
-/*	calendar taxonomy is defined in post-types/post-type-event.php
-	$taxonomies[] = array(
-		'post_type' => 'event',
-		'name' => 'event_cat',
-		'show_admin_column' => true,
-		'configuration' => array(
-			'hierarchical' => true,
-			'labels' => piklist( 'taxonomy_labels', 'Event Category' ),
-			'show_ui' => true,
-			'query_var' => true,
-			'rewrite' => false,
-		),
-	);
-*/
 	return $taxonomies;
+}
+
+/**
+ *	Custom Settings for Reservations
+ */
+add_filter( 'piklist_admin_pages', 'mcpk_reservation_setting_pages' );
+function mcpk_reservation_setting_pages ( $pages ) {
+	$pages[] = array(
+		'page_title' => 'Shuttle Settings',
+		'menu_title' => 'Settings',
+		'capability' => 'edit_others_posts',
+		'sub_menu' => 'options-general.php',	// under Settings menu
+		'menu_slug' => 'shuttle-settings',
+		'setting' => 'mcpk_shuttle_settings',
+		'menu_icon' => plugins_url( 'piklist/parts/img/piklist-icon.png' ),
+		'page_icon' => plugins_url( 'piklist/parts/img/piklist-page-icon-32.png' ),
+		'default_tab' => 'Messages',
+		'single_line' => false,
+		'save_text' => 'Save Settings',
+	);
+	return $pages;
 }
 
 /**
