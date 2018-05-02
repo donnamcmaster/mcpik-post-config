@@ -22,7 +22,7 @@ public $post_type = null;
 	scope: post_meta, taxonomy, post (posts table), 
 		(display only): calculate, thumbnail, attachments, children, ignore, 
 	type: text, textarea, editor (wysiwyg), integer, url, email, select, checkboxes, 
-		post_list, single_post, single_author, single_term, special, 
+		post_list, single_post, single_author, single_term, special, timestamp
 		(display only): display_only, 
 */
 protected
@@ -229,6 +229,16 @@ protected function init_post_type ( $post_type, $type_name=null, $display_name=n
 		}
 		if ( $this->contextual_help ) {
 			add_action( 'contextual_help', array( $this, 'add_help_text' ), 10, 3 );
+		}
+	}
+
+	if ( isset( $this->post_thumbnails ) ) {
+		foreach ( $this->post_thumbnails as $id=>$config ) {
+			if ( $id == 'post-thumbnail' ) {
+				set_post_thumbnail_size( $config['width'], $config['height'], $config['crop'] );
+			} else {
+				add_image_size( $id, $config['width'], $config['height'], $config['crop'] );
+			}
 		}
 	}
 
@@ -462,6 +472,8 @@ public function custom_column ( $column_name, $id ) {
 					} else {
 						echo '-';
 					}
+				} elseif ( $type == 'timestamp' ) {
+	   				echo date('n/j/Y g:i A', $meta );
 				} else {
 	   				echo $meta;
 				}
