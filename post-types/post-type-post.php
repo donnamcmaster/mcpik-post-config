@@ -69,7 +69,7 @@ function __construct ( ) {
 	$this->meta_boxes = array(
 		'credits' => array(
 			'byline',
-			'photo_credits',
+//			'photo_credits',
 		),
 	);
 }
@@ -81,7 +81,7 @@ function __construct ( ) {
 public function manage_columns ( $defaults ) {
 	$defaults['thumb'] = __( 'Thumbnail' );
 	$defaults['byline'] = __( 'Byline' );
-	$defaults['photo_credits'] = __( 'Photos by' );
+//	$defaults['photo_credits'] = __( 'Photos by' );
 	return $defaults;
 }
 

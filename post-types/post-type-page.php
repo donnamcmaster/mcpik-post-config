@@ -56,7 +56,7 @@ function __construct ( ) {
 	$this->meta_boxes = array(
 		'credits' => array(
 			'byline',
-			'photo_credits',
+//			'photo_credits',
 		),
 	);
 }
@@ -75,10 +75,10 @@ public function manage_columns ( $defaults ) {
     unset( $defaults['date'] );
     unset( $defaults['comments'] );
     unset( $defaults['author'] );
-    $defaults['byline'] = __( 'Byline' );
-    $defaults['photo_credits'] = __( 'Photos by' );
-    $defaults['slug'] = __( 'Slug' );
+//    $defaults['photo_credits'] = __( 'Photos by' );
 	$defaults['thumb'] = __( 'Thumbnail' );
+    $defaults['slug'] = __( 'Slug' );
+    $defaults['byline'] = __( 'Byline' );
     return $defaults;
 }
 
