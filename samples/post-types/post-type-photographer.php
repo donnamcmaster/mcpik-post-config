@@ -38,6 +38,7 @@ function __construct ( ) {
 	$this->credit_count = 0;
 	$this->credits = array();
 
+	// THIS SHOULD BE DEFINED IN THEME NOT PLUGIN
 	$this->post_thumbnails = array(
 		'listing_img' => array(
 			'width' => 225,
