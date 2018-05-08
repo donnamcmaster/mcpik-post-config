@@ -6,9 +6,9 @@ Description: internal notes
 Priority: low
 */
   
-piklist('field', array(
-	'type' => 'editor',
+piklist( 'field', array(
 	'field' => 'scratchpad',
+	'type' => 'editor',
 	'label' => __( 'Scratchpad' ),
 	'description' => __( 'A place to save internal notes. Not publicly displayed.' ),
 	'template' => 'field',
