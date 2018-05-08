@@ -29,12 +29,7 @@ protected
 	$default_field = array (
 		'scope' => 'post_meta',
 		'type' => 'text',
-		'col_title' => 'Item',	// for columns or multi-edit display
-		'col_align' => '',
-		'col_width' => null,
 		'col_display' => null,
-		'label' => 'Enter value: ',
-		'help' => '',		// optional sub-text for label
 		'null_ok' => true,
 		'default' => '',
 		'img_size' => 'thumbnail',
@@ -53,57 +48,41 @@ protected
 		'ID' => array(
 			'scope' => 'post',
 			'db_field' => 'ID',
-			'col_title' => 'ID',
-			'col_width' => 'small',
 			'input_type' => 'text',
 		),
 		'post_title' => array(
 			'scope' => 'post',
 			'db_field' => 'post_title',
-			'col_title' => 'Title',
-			'col_width' => 'medium',
 			'type' => 'text',
 		),
 		'post_status' => array(
 			'scope' => 'post',
 			'db_field' => 'post_status',
-			'col_title' => 'Status',
-			'col_width' => 'medium',
 			'type' => 'text',
 		),
 		'post_content' => array(
 			'scope' => 'post',
 			'db_field' => 'post_content',
-			'col_title' => 'Content',
-			'col_width' => 'wide',
 			'type' => 'textarea',
 		),
 		'post_excerpt' => array(
 			'scope' => 'post',
 			'db_field' => 'post_excerpt',
-			'col_title' => 'Excerpt',
-			'col_width' => 'wide',
 			'type' => 'textarea',
 		),
 		'post_date' => array(
 			'scope' => 'post',
 			'db_field' => 'post_date',
-			'col_title' => 'Post Date',
-			'col_width' => 'medium',
 			'type' => 'text',
 		),
 		'slug' => array(
 			'scope' => 'post',
 			'db_field' => 'post_name',
-			'col_title' => 'Slug',
-			'col_width' => 'medium',
 			'type' => 'text',
 		),
 		'post_parent' => array(
 			'scope' => 'post',
 			'db_field' => 'post_parent',
-			'col_title' => 'Parent',
-			'col_width' => 'medium',
 			'type' => 'single_post',
 			'post_type' => null,	// init when handler created
 		),
@@ -111,80 +90,51 @@ protected
 		'display_parent' => array(
 			'scope' => 'post',
 			'db_field' => 'post_parent',
-			'col_title' => 'Parent',
-			'col_width' => 'medium',
 			'type' => 'display_only',
 			'post_type' => null,	// init when handler created
 		),
 		'menu_order' => array(
 			'scope' => 'post',
 			'db_field' => 'menu_order',
-			'col_title' => 'Menu Order',
-			'col_width' => 'tiny',
 			'type' => 'text',
 		),
 		'post_author' => array(
 			'scope' => 'post',
 			'db_field' => 'post_author',
-			'col_title' => 'Author',
-			'col_width' => 'small',
-			'label' => 'Select a new author:',
-//			'help' => '(WordPress only allows selecting from editors; use this selection box to override and assign a new author.)',
 			'type' => 'single_author',
 			'null_ok' => false,
 		),
 		'_wp_page_template' => array(
 			'scope' => 'post_meta',
-			'col_title' => 'Template',
-			'col_width' => 'small',
+			'type' => 'text',
+		),
+		'_wp_attachment_image_alt' => array(
+			'scope' => 'post_meta',
 			'type' => 'text',
 		),
 		'thumb' => array(	// for featured image ("post thumbnail")
 			'scope' => 'thumbnail',
 			'img_size' => 'thumbnail',	// override for different size in col display
-			'col_title' => 'Image',
-			'col_width' => 'narrow',
 			'col_display' => 'image',
 		),
 		'attached_docs' => array(
 			'scope' => 'attachments',
-			'label' => 'Attached Document Files:',
-			'col_title' => 'Files',
-			'col_width' => 'narrow',
 			'post_mime_type' => 'application',
 		),
 		'image_count' => array(
 			'scope' => 'calculate',
-			'label' => 'Image Count:',
-			'col_title' => 'Image Count',
-			'col_width' => 'narrow',
 			'post_mime_type' => 'image',
 		),
 		'img_size' => array(
 			'scope' => 'calculate',
-			'col_title' => 'Size',
 		),
 		'attachment_count' => array(
 			'scope' => 'calculate',
-			'label' => 'Attachment Count:',
-			'col_title' => 'Attachment Count',
-			'col_width' => 'narrow',
 			'post_mime_type' => '',
 		),
 	);
 
 protected $custom_columns = null;		// columns for group edit display
-protected $contextual_help = null;		// help text for post edit screen
-protected $meta_boxes = null;
-
-protected $default_sort_by = 'menu_order';
-protected $default_sort_order = 'ASC';
-protected $default_sort_meta_key = '';
-
-protected $url_field = null;			// opt field containing URL for this post type
-
-protected $registered = false;			// has this post type been registered?
-
 
 /**
  *
@@ -211,10 +161,6 @@ protected function init_post_type ( $post_type, $type_name=null, $display_name=n
 	$this->post_fields['post_parent']['post_type'] = $post_type;
 	$this->post_fields['display_parent']['post_type'] = $post_type;
 
-	if ( !$this->registered ) {
-		add_filter( 'piklist_post_types', array( $this, 'register' ) );
-	}
-
 	if ( is_admin() ) {
 		// initialize common admin filters
 		if ( $this->post_type == 'attachment' ) {
@@ -223,85 +169,12 @@ protected function init_post_type ( $post_type, $type_name=null, $display_name=n
 			$filter = 'manage_'.$this->post_type.'_posts_columns';
 		}
 		add_filter( $filter, array( $this, 'manage_columns' ) );
-
-		if ( method_exists( $this, 'post_updated_messages' ) ) {
-			add_filter( 'post_updated_messages', array( $this, 'post_updated_messages' ) );
-		}
-		if ( $this->contextual_help ) {
-			add_action( 'contextual_help', array( $this, 'add_help_text' ), 10, 3 );
-		}
-	}
-
-	if ( isset( $this->post_thumbnails ) ) {
-		foreach ( $this->post_thumbnails as $id=>$config ) {
-			if ( $id == 'post-thumbnail' ) {
-				set_post_thumbnail_size( $config['width'], $config['height'], $config['crop'] );
-			} else {
-				add_image_size( $id, $config['width'], $config['height'], $config['crop'] );
-			}
-		}
 	}
 
 	// initialize subclass filters if defined
 	if ( method_exists( $this, 'init_filters_and_actions' ) ) {
 		$this->init_filters_and_actions();
 	}
-}
-
-
-/**
- *	get_handler
- *
- *	Returns the handler object for $post_type. 
- */
-public static function get_handler ( $post_type ) {
-	global $mcpk_pt_handlers;
-	return $mcpk_pt_handlers[$post_type];
-}
-
-
-/**
- *	register
- *
- *	Hooked to Piklist's 'piklist_post_types' filter. 
- *	- registers the custom post type; sets registered=true
- */
-public function register ( $post_types ) {
-	if ( !$this->registered ) {
-		$labels = piklist( 'post_type_labels', $this->display_name );
-		$this->register_args['labels'] = $labels;
-		$post_types[$this->post_type] = $this->register_args;
-		$this->registered = true;
-	}
-	return $post_types;
-}
-
-
-/**
- *	Get Details
- *	- returns a simple array with post meta and the essential post content
- *		ID
- *		post_title
- *		post_status
- *		post_date
- *		post_excerpt
- *		post_content
- */
-protected static function get_details ( $post, $first_element_only=false ) { 
-	$details = array();
-	
-	// get post meta
-	$details = mcw_get_simple_post_custom( $post->ID, $first_element_only );
-
-	// add info from post record
-	$details['ID'] = $post->ID;
-	$details['post_title'] = $post->post_title;
-	$details['post_status'] = $post->post_status;
-	$details['post_date'] = $post->post_date;
-	$details['post_excerpt'] = $post->post_excerpt;
-	$details['post_content'] = $post->post_content;
-
-	return $details;
 }
 
 
@@ -320,28 +193,6 @@ protected static function get_posts_post_list ( $post_list, $separator=', ', $li
 
 
 /**
- *	Get Post Choices
- *	- returns a selection array of post IDs & names
- */
-static function get_post_choices ( $post_type, $null_ok=false, $null_label='-- none --', $limit=-1 ) { 
-	$choices = piklist(
-		get_posts( array(
-			'post_type' => $post_type,
-			'numberposts' => $limit,
-			'orderby' => 'title',
-			'order' => 'ASC'
-		)),
-		array( 'ID', 'post_title' )
-	);
-	if ( $null_ok ) {
-		$null_choice = array( 0 => $null_label );
-		$choices = $null_choice + $choices;
-	}
-	return $choices;
-}
-
-
-/**
  *
  *	Display Methods
  *
@@ -353,28 +204,14 @@ static function get_post_choices ( $post_type, $null_ok=false, $null_label='-- n
  *	returns an anchor with the post title
  *	pass the name if calling function already has it, to avoid add'l db lookup
  */
-public function get_linked_name ( $id, $name='' ) {
-	$url = $this->url_field ? get_post_meta( $id, $this->url_field, true) : '';
-	$name = $name ? $name : get_the_title( $id );
-	return $url ? mcw_get_anchor( $url, $name ) : $name;
-}
-
-
-/**
- *	piklist_meta_box_fields
- *	Calls Piklist to create the fields for a meta box. 
- *	No return value.
- */
-public function piklist_meta_box_fields ( $meta_box ) {
-	if ( !is_array( $this->meta_boxes ) || !isset( $this->meta_boxes[$meta_box] ) ) {
-		mcw_log( "piklist_meta_box_fields: no meta_box $meta_box" );
-		return;
-	}
-	foreach ( $this->meta_boxes[$meta_box] as $field_name ) {
-		$field = $this->post_fields[$field_name];
-		$field['field'] = $field_name;
-//piklist::pre($field);
-		piklist( 'field', $field );
+public function get_linked_name ( $post_id, $name='' ) {
+	$url = get_permalink( $post_id );
+	$name = $name ? $name : get_the_title( $post_id );
+	if ( !$name ) {
+		mcw_log( "no name found for get_linked_name ( $post_id )" );
+		return null;
+	} else {
+		return $url ? McPik_Utils::get_anchor( $url, $name ) : $name;
 	}
 }
 
