@@ -33,12 +33,32 @@ div.error.caution {
 	width: 12% !important;
 }
 
+/*	Post Edit - Single View
+--------------------*/
+
+/* increase size of excerpt edit box */
+textarea#excerpt {
+	height: 200px !important;
+}
+
+/* edit button vertical offsets (horz always 0): 
+blue 0, red -18, ylo -36, purple -54, pink -72, orange -90, green -108, cyan -126, plain -144 */
+a.post-edit-link {
+	font-size: 0;
+	color: transparent;
+	padding: 12px 8px 4px 8px;
+	background: transparent url(../img/edit-buttons.png) 0 -36px no-repeat;
+}
+a.post-edit-link:hover {
+	background-position: 0 -18px;
+}
+
 /*	Media Library List View
 	Hide the dinky icon
 --------------------*/
 .column-title .media-icon {
 	display: none;
 }
-table.media .column-title .has-media-icon .row-actions {
+table.media .column-title .has-media-icon~.row-actions {
     margin-left: 0;
 }
