@@ -14,7 +14,7 @@ Class McPik_Post_Type_Photographer extends McPik_Post_Type {
 function __construct ( ) {
 
 	$this->register_args = array(
-		'public' => true,
+		'public' => false,
 		'publicly_queryable' => false,
 		'show_ui' => true, 
 		'query_var' => false,
@@ -24,7 +24,7 @@ function __construct ( ) {
 		'menu_icon' => 'dashicons-camera',
 		'supports' => array( 'title', 'thumbnail', 'editor' ),
 		'hide_meta_box' => array(
-			'attributes',
+			'slug',
 			'members-cp',
 		),
 	); 
@@ -38,6 +38,7 @@ function __construct ( ) {
 	$this->credit_count = 0;
 	$this->credits = array();
 
+	// THIS SHOULD BE DEFINED IN THEME NOT PLUGIN
 	$this->post_thumbnails = array(
 		'listing_img' => array(
 			'width' => 225,
@@ -149,3 +150,4 @@ public function manage_columns ( $defaults ) {
 }
 
 } // class
+?>
