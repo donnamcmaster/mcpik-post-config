@@ -2,7 +2,7 @@
 /*
 Title: Credits
 Description: Credit byline for news author, links to photographers.
-Post Type: post,page
+Post Type: post
 Priority: high
 Order: 10
 */
@@ -19,4 +19,4 @@ piklist( 'field', array(
 		'textarea_rows' => 2,
 		'quicktags' => true,
 	) 
-);
+));
