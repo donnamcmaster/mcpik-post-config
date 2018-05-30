@@ -1,8 +1,8 @@
 <?php
 /*
-Plugin Name: McPik Post List Columns
+Plugin Name: McPik Post Custom
 Plugin URI: http://www.donnamcmaster.com/
-Description: Object-oriented post types configuration and admin; supplements Piklist
+Description: Configuration and admin for post types, custom fields, and edit columns. Based on Piklist
 Version: 00.01.00
 Author: Donna McMaster
 Author URI: http://www.donnamcmaster.com/
@@ -11,6 +11,7 @@ License: GPL2 (see _LICENSE.TXT)
 
 05-Jun-2016	DMc	customized for Coloma.com
 10-Mar-2018	DMc	customized for ColomaShuttle.com
+29-May-2018	DMc	renamed from mcpik-post-types to mcpik-post-custom
 */
 
 if ( !defined( 'ABSPATH' ) ) {
