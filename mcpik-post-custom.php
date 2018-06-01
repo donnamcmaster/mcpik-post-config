@@ -41,7 +41,7 @@ define( 'MCPK_PT_PREFIX', 'McPik_Post_Type_' );
  */
 add_action( 'init', function () {
 	if ( is_admin() ) {
-		include_once( MCPK_SHTL_INCLUDES_PATH . '/class-piklist-checker.php' );
+		include_once( MCPK_PT_INCLUDES_PATH . '/class-piklist-checker.php' );
 		if ( !piklist_checker::check( __FILE__ ) ) {
 			return;
 		}
