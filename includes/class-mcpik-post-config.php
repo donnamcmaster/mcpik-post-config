@@ -1,22 +1,28 @@
 <?php
 /**
- *	Class McPik_Post_Type
+ *	Class McPik_Post_Config
  *
  *	General configuration and display routines for post types (custom and built-in).
  *
- *	@package McWebby_Base
+ *	@package McBoots_2018
  *	@subpackage Post_Type_Support
- *	@since McWebby Base 2.0
+ *	@since McBoots_2018 v1.0
  */
 
-Class McPik_Post_Type {
+Class McPik_Post_Config {
 
-public $post_type = null;
+const MCPK_PT_PREFIX = 'McPik_Post_Type_';
+
+protected static
+	$registered = false,
+	$custom_columns = null;		// columns for group edit display
+
 
 /**
-	$this->post_fields defines all custom fields, plus all built-in fields and 
+	The self::$post_fields array defines all custom fields, plus all built-in fields and 
 	pseudo-fields such as "attached docs" used in column displays and multi-edit.
-	Class McPik_Post_Type defines built-in fields; each subclass defines its custom fields.
+	Class McPik_Post_Config defines the default & built-in fields; each subclass defines its custom fields,
+	which are then in get_called_class()::$post_fields.
 
 	Supported Values 
 	scope: post_meta, taxonomy, post (posts table), 
@@ -25,7 +31,7 @@ public $post_type = null;
 		post_list, single_post, single_author, single_term, special, timestamp
 		(display only): display_only, 
 */
-protected
+protected static
 	$default_field = array (
 		'scope' => 'post_meta',
 		'type' => 'text',
@@ -43,7 +49,7 @@ protected
 		'options' => null,
 	);
 
-protected
+protected static
 	$post_fields = array(
 		'ID' => array(
 			'scope' => 'post',
@@ -134,14 +140,12 @@ protected
 		),
 	);
 
-protected $custom_columns = null;		// columns for group edit display
-
 /**
  *
  *	Sub-Class Initialization and Registration
  *
- *	On the init hook, function 
- *	calls McPik_Post_Type::init_post_type for each post_type defined by child theme. 
+ *	On the init hook, function calls McPik_Post_Config::init_post_type 
+ *	for each post_type defined by child theme. 
  */
 
 
@@ -152,31 +156,55 @@ protected $custom_columns = null;		// columns for group edit display
  *	- basic instance init
  *	- sets action hooks and filters
  */
-protected function init_post_type ( $post_type, $type_name=null, $display_name=null ) {
-	$this->post_type = $post_type;
-	$this->type_name = $type_name ? $type_name : $post_type;
-	$this->display_name = $display_name ? $display_name : ucwords( $this->type_name );
+protected static function init_post_type ( $post_type ) {
+	$called_class = get_called_class();
 
 	// override in post type handler init if post_parent is of a different type
-	$this->post_fields['post_parent']['post_type'] = $post_type;
-	$this->post_fields['display_parent']['post_type'] = $post_type;
+	$called_class::$post_fields['post_parent']['post_type'] = $post_type;
+	$called_class::$post_fields['display_parent']['post_type'] = $post_type;
 
-	if ( is_admin() ) {
-		// initialize common admin filters
-		if ( $this->post_type == 'attachment' ) {
-			$filter = 'manage_media_columns';
-		} else {
-			$filter = 'manage_'.$this->post_type.'_posts_columns';
-		}
-		add_filter( $filter, array( $this, 'manage_columns' ) );
+	$called_class::define_custom_fields();
+
+	// register post_type & custom taxonomies using Piklist functions
+	if ( !$called_class::$registered ) {
+		add_filter( 'piklist_post_types', array( $called_class, 'register_post_type' ) );
 	}
+	add_filter( 'piklist_taxonomies', array( $called_class, 'define_taxonomies' ) );
 
-	// initialize subclass filters if defined
-	if ( method_exists( $this, 'init_filters_and_actions' ) ) {
-		$this->init_filters_and_actions();
+	// initialize filters for admin columns
+	if ( is_admin() ) {
+		if ( $post_type == 'attachment' ) {
+			add_filter( 'manage_media_columns', array( $called_class, 'manage_columns' ) );
+			add_action( 'manage_media_custom_column', array( $called_class, 'custom_column' ), 10, 2);
+		} else {
+			add_filter( 'manage_'.$post_type.'_posts_columns', array( $called_class, 'manage_columns' ) );
+			if ( $post_type == 'page' ) {
+				add_action( 'manage_pages_custom_column', array( $called_class, 'custom_column' ), 10, 2);
+			} else {
+				add_action( 'manage_posts_custom_column', array( $called_class, 'custom_column' ), 10, 2);
+			}
+		}
 	}
 }
 
+protected static function define_custom_fields () {
+	// override this function for post_type specific fields
+}
+public static function register_post_type ( $post_types ) {
+	// override this function for post_type specific fields
+	return $post_types;
+}
+public static function define_taxonomies ( $taxonomies ) {
+	// override this function for post_type specific fields
+	return $taxonomies;
+}
+
+
+/**
+ *
+ *	Display Methods
+ *
+ */
 
 // expects a list of post objects
 protected static function get_posts_post_list ( $post_list, $separator=', ', $link='' ) {
@@ -191,12 +219,6 @@ protected static function get_posts_post_list ( $post_list, $separator=', ', $li
 	return $s;
 }
 
-
-/**
- *
- *	Display Methods
- *
- */
 
 /**
  *	get_linked_name
@@ -222,18 +244,23 @@ public function get_linked_name ( $post_id, $name='' ) {
  *
  */
 
-public function manage_columns ( $defaults ) {
+public static function manage_columns ( $defaults ) {
     return $defaults;
 }
 
-public function custom_column ( $column_name, $id ) {
+public static function custom_column ( $column_name, $id ) {
 	global $wpdb;
-	if ( !array_key_exists( $column_name, $this->post_fields ) ) {
+	$called_class = get_called_class();
+	$current_post_type = get_post_type();
+
+	if ( $called_class::$post_type != $current_post_type ) {
+		return;
+	}
+	if ( !array_key_exists( $column_name, $called_class::$post_fields ) ) {
 		return;
 	}
 	$post = get_post( $id );
-
-	$column = wp_parse_args( $this->post_fields[$column_name], $this->default_field );
+	$column = wp_parse_args( $called_class::$post_fields[$column_name], self::$default_field );
 	extract( $column );
 	switch ( $scope ) {
    		case 'post':
@@ -363,18 +390,18 @@ public function custom_column ( $column_name, $id ) {
 					}
 					break;
    				default:
-					$this->special_custom_column( $column_name, $id, $post );			
+					$called_class::$special_custom_column( $column_name, $id, $post );			
    			}
 			break;
 		default:
-			$this->special_custom_column( $column_name, $id, $post );			
+			$called_class::$special_custom_column( $column_name, $id, $post );			
     } // switch
 }
 
-protected function special_custom_column ( $column_name, $id, $post ) {
+protected static function special_custom_column ( $column_name, $id, $post ) {
 	// override this function for post_type specific columns
 }
 
 
-} // Class McPik_Post_Type
+} // Class McPik_Post_Config
 ?>
