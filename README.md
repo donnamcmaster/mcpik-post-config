@@ -1,12 +1,8 @@
-# mcpik-clcc
+# mcpik-post-config
 WordPress plugin based on Piklist.
-Developed by Donna McMaster for use on Coloma-Lotus Chamber of Commerce (CLCC) websites: 
-- Coloma.com
-- TheAmericanRiver.com
+Developed by Donna McMaster
 
-Supports the following features: 
-- directory listings
-- banner ads
-- events calendar
+Configures post types, meta-boxes, and post edit list columns. 
 
-Configures post types, meta-boxes, and post edit list columns. Provides display functions. 
+Extend the McPik\_Post\_Config class for each post type. 
+See examples in the samples folder. 
