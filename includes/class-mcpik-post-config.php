@@ -29,7 +29,7 @@ protected static
 		(display only): calculate, thumbnail, attachments, children, ignore, 
 	type: text, textarea, editor (wysiwyg), integer, url, email, select, checkboxes, 
 		post_list, single_post, single_author, single_term, special, timestamp
-		(display only): display_only, 
+		(display only): display_only, trim (excerpt)
 */
 protected static
 	$default_field = array (
@@ -39,6 +39,7 @@ protected static
 		'null_ok' => true,
 		'default' => '',
 		'img_size' => 'thumbnail',
+		'excerpt_length' => 15,		// number of words to excerpt, e.g., from post_content or post_excerpt
 
 		// these fields are used only occasionally and must be null-checked
 		'max_length' => null,
@@ -69,12 +70,13 @@ protected static
 		'post_content' => array(
 			'scope' => 'post',
 			'db_field' => 'post_content',
-			'type' => 'textarea',
+			'type' => 'trim',	// uses wp_trim_words( get_the_content(), 40, '...' );
 		),
 		'post_excerpt' => array(
 			'scope' => 'post',
 			'db_field' => 'post_excerpt',
 			'type' => 'textarea',
+//			'type' => 'trim',	// alternative: wp_trim_words( get_the_content(), 40, '...' );
 		),
 		'post_date' => array(
 			'scope' => 'post',
@@ -261,10 +263,15 @@ public static function custom_column ( $column_name, $id ) {
 	}
 	$post = get_post( $id );
 	$column = wp_parse_args( $called_class::$post_fields[$column_name], self::$default_field );
+//piklist::pre( $column );
 	extract( $column );
 	switch ( $scope ) {
    		case 'post':
-			echo $post->$db_field;
+   			if ( $type == 'trim' ) {
+   				echo wp_trim_words( $post->$db_field, $excerpt_length );
+   			} else {
+				echo $post->$db_field;
+   			}
 			break;
 
    		case 'related':
