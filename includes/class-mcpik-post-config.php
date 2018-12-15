@@ -323,6 +323,10 @@ public static function custom_column ( $column_name, $id ) {
 			}
 
 		case 'post_meta':
+			if ( $type == 'special' ) {
+				$called_class::special_custom_column( $column_name, $id, $post );			
+				break;
+			}
 			// handles only a single post selection
 			// special case implementation for photographer
 			// needs to be handled more broadly
@@ -422,11 +426,11 @@ public static function custom_column ( $column_name, $id ) {
 					}
 					break;
    				default:
-					$called_class::$special_custom_column( $column_name, $id, $post );			
+					$called_class::special_custom_column( $column_name, $id, $post );			
    			}
 			break;
 		default:
-			$called_class::$special_custom_column( $column_name, $id, $post );			
+			$called_class::special_custom_column( $column_name, $id, $post );			
     } // switch
 }
 
