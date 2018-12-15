@@ -172,6 +172,7 @@ protected static function init_post_type ( $post_type ) {
 		add_filter( 'piklist_post_types', array( $called_class, 'register_post_type' ) );
 	}
 	add_filter( 'piklist_taxonomies', array( $called_class, 'define_taxonomies' ) );
+	add_action( 'wp_loaded', array( $called_class, 'add_taxonomies_to_post_types' ) );
 
 	// initialize filters for admin columns
 	if ( is_admin() ) {
@@ -199,6 +200,9 @@ public static function register_post_type ( $post_types ) {
 public static function define_taxonomies ( $taxonomies ) {
 	// override this function for post_type specific fields
 	return $taxonomies;
+}
+public static function add_taxonomies_to_post_types () {
+	// override this function for post_type specific actions
 }
 
 
