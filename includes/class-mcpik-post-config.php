@@ -225,6 +225,23 @@ protected static function get_posts_post_list ( $post_list, $separator=', ', $li
 	return $s;
 }
 
+// expects each meta entry to be a post ID
+protected static function get_simple_post_list ( $post_id, $field ) {
+	ob_start();
+	$post_list = get_post_meta( $post_id, $field );
+	if ( $post_list ) {
+		$sep = '';
+		foreach ( $post_list as $entry_id ) {
+			if ( $entry_id ) {
+				echo $sep, get_the_title( $entry_id );
+				$sep = ', ';
+			}
+		}
+	}
+	return ob_get_clean();
+}
+
+
 
 /**
  *	get_linked_name
@@ -317,6 +334,10 @@ public static function custom_column ( $column_name, $id ) {
 						echo $selected_post->post_title;
 					}
 				}
+
+			} elseif ( $type == 'post_list' ) {
+				echo $called_class::get_simple_post_list( $id, $column_name );
+
 			// handle case that may have multiple results
 			} elseif ( isset( $choices ) ) {
 				$meta = get_post_meta( $id, $column_name );
