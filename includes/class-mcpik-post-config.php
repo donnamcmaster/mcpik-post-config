@@ -55,7 +55,7 @@ protected static
 		'ID' => array(
 			'scope' => 'post',
 			'db_field' => 'ID',
-			'input_type' => 'text',
+			'type' => 'text',
 		),
 		'post_title' => array(
 			'scope' => 'post',
@@ -374,6 +374,8 @@ public static function custom_column ( $column_name, $id ) {
 					}
 				} elseif ( $type == 'timestamp' ) {
 	   				echo date('n/j/Y g:i A', $meta );
+				} elseif ( $type == 'trim' ) {
+	   				echo wp_trim_words( $meta, $excerpt_length );
 				} else {
 	   				echo $meta;
 				}

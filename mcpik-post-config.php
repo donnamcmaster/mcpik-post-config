@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: McPik Post Custom
+Plugin Name: McPik Post Config
 Plugin URI: http://www.donnamcmaster.com/
 Description: Configuration and admin for custom post types, fields, and edit columns. Based on Piklist.
 Version: 00.01.00
@@ -47,7 +47,7 @@ add_action( 'init', function () {
 		}
 	}
 	include_once( MCPK_PT_INCLUDES_PATH.'/class-mcpik-post-config.php' );
-}, 0 );
+}, 5 );
 
 
 /**
